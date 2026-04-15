@@ -1,21 +1,33 @@
-# Specialist Teams Documentation
+# Specialist Teams
 
-This repository contains super comprehensive, deep-dive documentation for 15 specialist roles. Each specialist domain is broken down into a main file (core concepts, architecture, workflows) and an advanced file (troubleshooting, deep technical details).
+A comprehensive knowledge base of 17 specialist domains for AI agents and engineering teams. Each specialist includes a main guide and an advanced guide with deep technical content, architecture patterns, code examples, and best practices sourced from official documentation.
 
-## Specialist Roles Included:
-1. OpenClaw Specialist
-2. NemoClaw Specialist
-3. Prompt Engineering Specialist
-4. RAG Specialist
-5. AI Specialist
-6. Claude Specialist
-7. Manus Specialist
-8. OpenAI Specialist
-9. Database Specialist (PostgreSQL, MongoDB)
-10. RabbitMQ & DocumentDB Specialist
-11. Valkey & Redis Specialist
-12. Go Specialist
-13. Frontend Specialist (React, Next.js, TypeScript)
-14. DevOps Specialist (AWS, K8s, EKS, Helm, Git, VPC, Networks)
+## Specialists
 
-All documentation is based exclusively on official documentation, GitHub repositories, and official sites.
+| # | Domain | Main Guide | Advanced Guide |
+|---|--------|------------|----------------|
+| 1 | OpenClaw | [01-openclaw-specialist.md](./01-openclaw-specialist.md) | [01-openclaw-advanced.md](./01-openclaw-advanced.md) |
+| 2 | NemoClaw (NVIDIA) | [02-nemoclaw-specialist.md](./02-nemoclaw-specialist.md) | [02-nemoclaw-advanced.md](./02-nemoclaw-advanced.md) |
+| 3 | Prompt Engineering | [03-prompt-specialist.md](./03-prompt-specialist.md) | [03-prompt-advanced.md](./03-prompt-advanced.md) |
+| 4 | RAG | [04-rag-specialist.md](./04-rag-specialist.md) | [04-rag-advanced.md](./04-rag-advanced.md) |
+| 5 | AI Fundamentals | [05-ai-specialist.md](./05-ai-specialist.md) | [05-ai-advanced.md](./05-ai-advanced.md) |
+| 6 | Claude (Anthropic) | [06-claude-specialist.md](./06-claude-specialist.md) | [06-claude-advanced.md](./06-claude-advanced.md) |
+| 7 | Manus Platform | [07-manus-specialist.md](./07-manus-specialist.md) | [07-manus-advanced.md](./07-manus-advanced.md) |
+| 8 | Manus Workflows | [08-manus-specialist-2.md](./08-manus-specialist-2.md) | [08-manus-advanced-2.md](./08-manus-advanced-2.md) |
+| 9 | OpenAI | [09-openai-specialist.md](./09-openai-specialist.md) | [09-openai-advanced.md](./09-openai-advanced.md) |
+| 10 | Databases (PostgreSQL / MongoDB) | [10-database-specialist.md](./10-database-specialist.md) | [10-database-advanced.md](./10-database-advanced.md) |
+| 11 | RabbitMQ / DocumentDB | [11-rabbitmq-documentdb-specialist.md](./11-rabbitmq-documentdb-specialist.md) | [11-rabbitmq-documentdb-advanced.md](./11-rabbitmq-documentdb-advanced.md) |
+| 12 | Valkey / Redis | [12-valkey-redis-specialist.md](./12-valkey-redis-specialist.md) | [12-valkey-redis-advanced.md](./12-valkey-redis-advanced.md) |
+| 13 | Go (Golang) | [13-go-specialist.md](./13-go-specialist.md) | [13-go-advanced.md](./13-go-advanced.md) |
+| 14 | Frontend (React / Next.js) | [14-frontend-specialist.md](./14-frontend-specialist.md) | [14-frontend-advanced.md](./14-frontend-advanced.md) |
+| 15 | DevOps (AWS / K8s / EKS / Helm) | [15-devops-specialist.md](./15-devops-specialist.md) | [15-devops-advanced.md](./15-devops-advanced.md) |
+| 16 | Lua | [16-lua-specialist.md](./16-lua-specialist.md) | [16-lua-advanced.md](./16-lua-advanced.md) |
+| 17 | Bash / Shell | [17-bash-specialist.md](./17-bash-specialist.md) | [17-bash-advanced.md](./17-bash-advanced.md) |
+
+## AI Agent Usage
+
+See **[SKILL.md](./SKILL.md)** for instructions on how AI agents should navigate and use these specialist files.
+
+## License
+
+Private repository.
