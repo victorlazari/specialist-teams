@@ -1,53 +1,94 @@
-# NemoClaw Specialist: Advanced Topics and Troubleshooting
+# NVIDIA NemoClaw Advanced Guide: Troubleshooting, Scaling, and Edge Cases
 
 ## Introduction
-This document serves as the advanced guide for NemoClaw specialists. It delves into complex configurations, deep-dive topics, and troubleshooting scenarios for deploying and managing NVIDIA NemoClaw. Building upon the core concepts introduced in the main overview, this guide provides actionable insights and expert-level best practices for maximizing the potential of the NemoClaw stack [1].
 
-## Advanced Configuration
+This guide is intended as a supplementary resource to the main NVIDIA NemoClaw Specialist Guide. It dives into advanced topics, including complex troubleshooting scenarios, scaling strategies for enterprise deployments, detailed security hardening, and handling edge cases within the NemoClaw and OpenShell ecosystem [1].
 
-### Kubernetes and Docker Deployment
-NemoClaw is designed to integrate smoothly with modern container orchestration platforms like Kubernetes (K8s) and Docker. Deploying NemoClaw in a K8s environment involves defining Helm charts or custom resource definitions (CRDs) that manage the lifecycle of the OpenClaw Gateway and associated agents. 
+## Advanced Security Hardening
 
-| Component | Description | Recommended Configuration |
-|---|---|---|
-| Gateway Pod | The core WebSocket server handling incoming connections. | Ensure resource limits are set appropriately to handle concurrent sessions. |
-| Agent Nodes | The individual LLM agents processing requests. | Utilize node affinity to schedule these pods on GPU-enabled nodes for optimal inference speed. |
-| Networking | The communication layer between the gateway and agents. | Implement network policies to restrict access and enforce zero-trust security principles. |
+While NemoClaw provides a robust default security posture, enterprise environments often require additional hardening to meet strict compliance and risk management frameworks [1].
 
-When deploying with Docker Compose, it is crucial to properly map volumes for persistent storage of session data and logs. The NVIDIA Container Toolkit must be installed and configured on the host machine to allow containers to access GPU resources [2] [3].
+### Container-Level Hardening
 
-### Security and Managed Inference
-NemoClaw significantly enhances the security posture of OpenClaw deployments. By utilizing the NVIDIA OpenShell runtime, administrators can enforce strict execution policies for autonomous agents. This includes sandboxing agent actions and monitoring their behavior for anomalies.
+The NemoClaw sandbox image is designed to minimize the attack surface [2]. Build toolchains such as `gcc`, `g++`, and `make`, along with network probes like `netcat`, are explicitly removed from the runtime image [2]. If compilation is required during the build process, operators should utilize a multi-stage build approach, performing compilation in a separate stage and copying only the necessary artifacts to the runtime stage [2].
 
-> "NVIDIA NemoClaw uses open source models—like NVIDIA Nemotron—alongside the NVIDIA OpenShell runtime, which is part of the NVIDIA Agent Toolkit, a secure environment for running autonomous agents." [4]
+### Process and Capability Management
 
-For managed inference, NemoClaw seamlessly connects to NVIDIA's NIM microservices, providing scalable and optimized model serving. This architecture offloads the computational burden from the gateway, allowing for high-throughput and low-latency responses [5].
+To prevent fork-bomb attacks and limit resource exhaustion, the container's `ENTRYPOINT` sets a strict process limit using `ulimit -u 512` [2]. This limit is also enforced by the startup script (`nemoclaw-start.sh`) [2]. When launching the sandbox directly with `docker run`, this value can be adjusted via the `--ulimit nproc=512:512` flag [2].
 
-## Deep-Dive Topics
+A critical aspect of container security is the management of Linux capabilities [2]. When running the sandbox container, operators must explicitly drop all capabilities and re-add only those strictly required [2]. This is not something the `Dockerfile` can enforce; it must be configured at runtime [2].
 
-### Multi-Agent Routing
-A key feature of the underlying OpenClaw architecture is its sophisticated multi-agent routing capabilities. NemoClaw leverages this by allowing specialists to define complex routing logic based on user intent, context, or specific application requirements. For example, a request originating from Slack might be routed to a specialized coding assistant, while a WhatsApp query could be handled by a general-purpose customer service agent. This routing is configured via the gateway's plugin system, which supports custom JavaScript/TypeScript logic running on Node 24/22 LTS [6].
+| Orchestrator | Configuration Example |
+| --- | --- |
+| Docker CLI | `docker run --rm --cap-drop=ALL --ulimit nproc=512:512 nemoclaw-sandbox` |
+| Docker Compose | `cap_drop: [ALL]`, `cap_add: [NET_BIND_SERVICE]`, `security_opt: [no-new-privileges:true]` |
 
-### Plugin Development
-Developing custom plugins for NemoClaw involves creating modules that interface with the OpenClaw Gateway API. These plugins can intercept messages, modify payloads, or trigger external actions. Best practices dictate that plugins should be lightweight, asynchronous, and robustly tested to prevent blocking the main event loop. Specialists should utilize the official SDK and adhere to the documented API contracts [7].
+### Filesystem Restrictions via Landlock
 
-## Troubleshooting
+NemoClaw utilizes the Landlock Linux Security Module (LSM) to enforce filesystem access rules at the kernel level [1]. The sandbox Landlock policy restricts the agent's home directory (`/sandbox`) to read-only access [2]. Only explicitly declared directories, such as `/sandbox/.openclaw-data` and `/tmp`, are writable [2].
 
-### Common Issues and Solutions
-1. **GPU Not Detected:** If the agent nodes fail to utilize the GPU, ensure that the NVIDIA drivers and Container Toolkit are correctly installed on the host. Verify the configuration in the deployment manifest (e.g., `nvidia.com/gpu: 1` in K8s).
-2. **Gateway Connection Refused:** Check the networking configuration. Ensure that the gateway is bound to the correct interface (often loopback when using Tailscale) and that firewall rules permit traffic on the designated port [8].
-3. **High Latency:** Monitor the inference endpoints. If latency is high, consider scaling the NIM microservices or optimizing the model parameters. Check the network latency between the gateway and the inference server.
+This read-only home directory prevents the agent from writing and executing scripts, modifying its runtime environment, creating persistent hidden files, or staging data for exfiltration [2].
 
-## Case Studies
-In a recent enterprise deployment, NemoClaw was utilized to build an internal knowledge base assistant. By integrating with the company's Slack workspace, employees could query internal documents using natural language. The deployment leveraged NemoClaw's security features to ensure that sensitive data was only accessible to authorized users, and the multi-agent routing allowed for specialized handling of HR, IT, and engineering queries [9].
+> **Important:** Landlock LSM requires Linux kernel 5.13 or later with `CONFIG_SECURITY_LANDLOCK=y` [2]. On kernels that do not support Landlock, protection falls back to Discretionary Access Control (DAC) only, which may allow the agent to write to files it owns [2]. For production deployments, verifying Landlock availability via `ls /sys/kernel/security/landlock` is strongly recommended [2].
+
+## Complex Troubleshooting Scenarios
+
+Troubleshooting a NemoClaw deployment often involves analyzing the interactions between the agent, the OpenShell gateway, and the host environment [1].
+
+### Network Egress Failures
+
+If the agent is failing to reach an external service, the first step is to review the OpenShell Terminal User Interface (TUI) [1]. The TUI surfaces blocked requests, allowing the operator to approve or deny them [1].
+
+If a request is blocked and not appearing in the TUI, it may be due to a binary-scoped endpoint rule [1]. OpenShell identifies the calling binary by reading `/proc/<pid>/exe` and computing a SHA256 hash [1]. If the binary has been modified or replaced, the hash mismatch will trigger an immediate denial [1]. Operators should verify the integrity of the binary and update the policy if necessary [1].
+
+### Inference Routing Issues
+
+Inference routing failures typically manifest as the agent being unable to communicate with `inference.local` [1]. This can occur if the provider credentials on the host are invalid or if the OpenShell gateway is misconfigured [1].
+
+To diagnose this, operators should check the blueprint runner logs and the sandbox container logs using the `nemoclaw logs` command [3]. Ensure that the `nemoclaw onboard` process completed successfully and that the selected provider (e.g., NVIDIA Endpoints, OpenAI) is properly configured [3].
+
+### State Migration Errors
+
+NemoClaw supports the migration of agent state across machines [1]. This process involves creating a snapshot, stripping credentials, and verifying integrity [1]. If a migration fails, it is often due to corrupted state files or mismatched blueprint versions [3].
+
+Operators should ensure that the source and destination machines are running compatible versions of OpenShell and OpenClaw, as defined in the `blueprint.yaml` [3]. The migration logs will indicate which specific file or integrity check failed [3].
+
+## Scaling and Enterprise Deployment
+
+Scaling NemoClaw deployments requires careful consideration of resource allocation, policy management, and monitoring [1].
+
+### Managing Multiple Sandboxes
+
+In an enterprise environment, it is common to run multiple OpenClaw agents, each in its own sandbox [1]. NemoClaw facilitates this by allowing the `nemoclaw onboard` command to be executed multiple times, creating distinct sandboxes based on the versioned blueprint [1].
+
+To manage these sandboxes effectively, operators should implement centralized logging and monitoring [1]. While the `nemoclaw logs` command is useful for individual sandboxes, enterprise deployments should aggregate logs from the OpenShell gateway and the sandbox containers into a centralized SIEM (Security Information and Event Management) system [1].
+
+### Dynamic Policy Management
+
+As agents take on new tasks, their network access requirements will change [1]. NemoClaw's declarative policy management allows operators to update the baseline policy dynamically [1].
+
+For development environments, operators might apply presets for package registries like PyPI and npm [1]. In production, these presets should be removed, and specific endpoint rules should be defined based on the principle of least privilege [1].
+
+| Posture Profile | Recommended Configuration |
+| --- | --- |
+| Locked-Down (Default) | Keep all defaults. Use operator approval for any endpoint. Use local Ollama or NVIDIA Endpoints. |
+| Development | Apply PyPI/npm presets. Keep binary restrictions. Use operator approval for unknown endpoints. |
+| Integration Testing | Add custom endpoint entries with tight path/method restrictions. Use `protocol: rest` for HTTP APIs. |
+
+### Edge Cases and Known Limitations
+
+Operators must be aware of certain edge cases and limitations when deploying NemoClaw [1].
+
+For example, the Memory Secret Scanner in the NemoClaw plugin is designed to block the agent from writing likely secrets (API keys, tokens) to persistent memory [1]. However, this is a heuristic-based scanner and may produce false positives or false negatives [1]. Operators should not rely solely on this scanner and must ensure that credentials are not inadvertently passed to the agent [1].
+
+Another edge case involves the `allowInsecureAuth` setting in the OpenClaw gateway [1]. This setting controls whether the gateway permits non-HTTPS authentication [1]. In a production environment, this should always be disabled, and all communication with the Control UI should be secured via HTTPS [1].
+
+## Conclusion
+
+By understanding the advanced security features, troubleshooting techniques, and scaling strategies outlined in this guide, operators can deploy and manage NVIDIA NemoClaw in complex enterprise environments with confidence. The combination of container-level hardening, granular network policies, and robust lifecycle management makes NemoClaw a powerful platform for running autonomous AI agents safely.
 
 ## References
-[1] NVIDIA NemoClaw Developer Guide. https://docs.nvidia.com/nemoclaw/latest/
-[2] Deploying NemoClaw on Kubernetes. https://github.com/NVIDIA/NemoClaw/tree/main/deploy/k8s
-[3] NVIDIA Container Toolkit Documentation. https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
-[4] Run Autonomous, Self-Evolving Agents More Safely with NVIDIA OpenShell. https://developer.nvidia.com/blog/run-autonomous-self-evolving-agents-more-safely-with-nvidia-openshell/
-[5] NVIDIA NIM Microservices. https://developer.nvidia.com/nim
-[6] OpenClaw Multi-Agent Routing Guide. https://docs.openclaw.ai/advanced/routing
-[7] OpenClaw Plugin Development SDK. https://github.com/openclaw/openclaw-sdk
-[8] OpenClaw Gateway Configuration. https://docs.openclaw.ai/cli/gateway
-[9] Enterprise AI with NemoClaw: A Case Study. (Internal NVIDIA Report, 2026)
+
+[1] NVIDIA. "Security Best Practices — NVIDIA NemoClaw Developer Guide." https://docs.nvidia.com/nemoclaw/latest/security/best-practices.html
+[2] NVIDIA. "Sandbox Image Hardening — NVIDIA NemoClaw Developer Guide." https://docs.nvidia.com/nemoclaw/latest/deployment/sandbox-hardening.html
+[3] NVIDIA. "Architecture — NVIDIA NemoClaw Developer Guide." https://docs.nvidia.com/nemoclaw/latest/reference/architecture.html
