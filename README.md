@@ -1,6 +1,6 @@
 # Specialist Teams
 
-A comprehensive knowledge base of 17 specialist domains for AI agents and engineering teams. Each specialist includes a main guide and an advanced guide with deep technical content, architecture patterns, code examples, and best practices sourced from official documentation.
+A comprehensive knowledge base of 18 specialist domains for AI agents and engineering teams. Each specialist includes a main guide and an advanced guide with deep technical content, architecture patterns, code examples, and best practices sourced from official documentation.
 
 ## Specialists
 
@@ -23,6 +23,7 @@ A comprehensive knowledge base of 17 specialist domains for AI agents and engine
 | 15 | DevOps (AWS / K8s / EKS / Helm) | [15-devops-specialist.md](./15-devops-specialist.md) | [15-devops-advanced.md](./15-devops-advanced.md) |
 | 16 | Lua | [16-lua-specialist.md](./16-lua-specialist.md) | [16-lua-advanced.md](./16-lua-advanced.md) |
 | 17 | Bash / Shell | [17-bash-specialist.md](./17-bash-specialist.md) | [17-bash-advanced.md](./17-bash-advanced.md) |
+| 18 | Ticket System Supreme | [18-ticket-supreme-specialist.md](./18-ticket-supreme-specialist.md) | [18-ticket-supreme-advanced.md](./18-ticket-supreme-advanced.md) |
 
 ## AI Agent Usage
 

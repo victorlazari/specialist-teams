@@ -1,6 +1,6 @@
 # Specialist Teams Knowledge Base
 
-This repository contains the ultimate reference guides for 17 different specialist domains. When an AI agent needs deep expertise, architecture patterns, code examples, or troubleshooting guidance in a specific domain, they should refer to the appropriate files in this repository.
+This repository contains the ultimate reference guides for 18 different specialist domains. When an AI agent needs deep expertise, architecture patterns, code examples, or troubleshooting guidance in a specific domain, they should refer to the appropriate files in this repository.
 
 ## Usage Instructions for AI Agents
 
@@ -30,6 +30,7 @@ This repository contains the ultimate reference guides for 17 different speciali
 | **DevOps (AWS/K8s)** | `15-devops-specialist.md` | `15-devops-advanced.md` |
 | **Lua** | `16-lua-specialist.md` | `16-lua-advanced.md` |
 | **Bash/Shell** | `17-bash-specialist.md` | `17-bash-advanced.md` |
+| **Ticket System Supreme** | `18-ticket-supreme-specialist.md` | `18-ticket-supreme-advanced.md` |
 
 ## File Structure Preference
 
