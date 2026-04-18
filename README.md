@@ -1,6 +1,6 @@
 # Specialist Teams
 
-A comprehensive knowledge base of 24 specialist domains for AI agents and engineering teams. Each specialist includes a main guide and an advanced guide with deep technical content, architecture patterns, code examples, and best practices sourced from official documentation.
+A comprehensive knowledge base of 25 specialist domains for AI agents and engineering teams. Each specialist includes a main guide and an advanced guide with deep technical content, architecture patterns, code examples, and best practices sourced from official documentation.
 
 ## Specialists
 
@@ -30,6 +30,7 @@ A comprehensive knowledge base of 24 specialist domains for AI agents and engine
 | 22 | Ticket System Reports | [22-ticket-reports-specialist.md](./22-ticket-reports-specialist.md) | [22-ticket-reports-advanced.md](./22-ticket-reports-advanced.md) |
 | 23 | Jira Status & Workflows | [23-jira-status-workflows-specialist.md](./23-jira-status-workflows-specialist.md) | [23-jira-status-workflows-advanced.md](./23-jira-status-workflows-advanced.md) |
 | 24 | SeaweedFS | [24-seaweedfs-specialist.md](./24-seaweedfs-specialist.md) | [24-seaweedfs-advanced.md](./24-seaweedfs-advanced.md) |
+| 25 | Speedtest (Ookla) | [25-speedtest-specialist.md](./25-speedtest-specialist.md) | [25-speedtest-advanced.md](./25-speedtest-advanced.md) |
 
 ## AI Agent Usage
 
