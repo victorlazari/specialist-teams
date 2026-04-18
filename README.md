@@ -1,6 +1,6 @@
 # Specialist Teams
 
-A comprehensive knowledge base of 23 specialist domains for AI agents and engineering teams. Each specialist includes a main guide and an advanced guide with deep technical content, architecture patterns, code examples, and best practices sourced from official documentation.
+A comprehensive knowledge base of 24 specialist domains for AI agents and engineering teams. Each specialist includes a main guide and an advanced guide with deep technical content, architecture patterns, code examples, and best practices sourced from official documentation.
 
 ## Specialists
 
@@ -29,6 +29,7 @@ A comprehensive knowledge base of 23 specialist domains for AI agents and engine
 | 21 | VoIP On-Call Services | [21-voip-oncall-specialist.md](./21-voip-oncall-specialist.md) | [21-voip-oncall-advanced.md](./21-voip-oncall-advanced.md) |
 | 22 | Ticket System Reports | [22-ticket-reports-specialist.md](./22-ticket-reports-specialist.md) | [22-ticket-reports-advanced.md](./22-ticket-reports-advanced.md) |
 | 23 | Jira Status & Workflows | [23-jira-status-workflows-specialist.md](./23-jira-status-workflows-specialist.md) | [23-jira-status-workflows-advanced.md](./23-jira-status-workflows-advanced.md) |
+| 24 | SeaweedFS | [24-seaweedfs-specialist.md](./24-seaweedfs-specialist.md) | [24-seaweedfs-advanced.md](./24-seaweedfs-advanced.md) |
 
 ## AI Agent Usage
 
