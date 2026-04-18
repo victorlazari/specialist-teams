@@ -1,6 +1,6 @@
 # Specialist Teams
 
-A comprehensive knowledge base of 18 specialist domains for AI agents and engineering teams. Each specialist includes a main guide and an advanced guide with deep technical content, architecture patterns, code examples, and best practices sourced from official documentation.
+A comprehensive knowledge base of 22 specialist domains for AI agents and engineering teams. Each specialist includes a main guide and an advanced guide with deep technical content, architecture patterns, code examples, and best practices sourced from official documentation.
 
 ## Specialists
 
@@ -24,6 +24,10 @@ A comprehensive knowledge base of 18 specialist domains for AI agents and engine
 | 16 | Lua | [16-lua-specialist.md](./16-lua-specialist.md) | [16-lua-advanced.md](./16-lua-advanced.md) |
 | 17 | Bash / Shell | [17-bash-specialist.md](./17-bash-specialist.md) | [17-bash-advanced.md](./17-bash-advanced.md) |
 | 18 | Ticket System Supreme | [18-ticket-supreme-specialist.md](./18-ticket-supreme-specialist.md) | [18-ticket-supreme-advanced.md](./18-ticket-supreme-advanced.md) |
+| 19 | On-Call Master Supreme | [19-oncall-master-supreme-specialist.md](./19-oncall-master-supreme-specialist.md) | [19-oncall-master-supreme-advanced.md](./19-oncall-master-supreme-advanced.md) |
+| 20 | Jira JSM Alerts & On-Call | [20-jira-jsm-oncall-specialist.md](./20-jira-jsm-oncall-specialist.md) | [20-jira-jsm-oncall-advanced.md](./20-jira-jsm-oncall-advanced.md) |
+| 21 | VoIP On-Call Services | [21-voip-oncall-specialist.md](./21-voip-oncall-specialist.md) | [21-voip-oncall-advanced.md](./21-voip-oncall-advanced.md) |
+| 22 | Ticket System Reports | [22-ticket-reports-specialist.md](./22-ticket-reports-specialist.md) | [22-ticket-reports-advanced.md](./22-ticket-reports-advanced.md) |
 
 ## AI Agent Usage
 
