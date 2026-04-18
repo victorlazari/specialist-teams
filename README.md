@@ -1,6 +1,6 @@
 # Specialist Teams
 
-A comprehensive knowledge base of 22 specialist domains for AI agents and engineering teams. Each specialist includes a main guide and an advanced guide with deep technical content, architecture patterns, code examples, and best practices sourced from official documentation.
+A comprehensive knowledge base of 23 specialist domains for AI agents and engineering teams. Each specialist includes a main guide and an advanced guide with deep technical content, architecture patterns, code examples, and best practices sourced from official documentation.
 
 ## Specialists
 
@@ -28,6 +28,7 @@ A comprehensive knowledge base of 22 specialist domains for AI agents and engine
 | 20 | Jira JSM Alerts & On-Call | [20-jira-jsm-oncall-specialist.md](./20-jira-jsm-oncall-specialist.md) | [20-jira-jsm-oncall-advanced.md](./20-jira-jsm-oncall-advanced.md) |
 | 21 | VoIP On-Call Services | [21-voip-oncall-specialist.md](./21-voip-oncall-specialist.md) | [21-voip-oncall-advanced.md](./21-voip-oncall-advanced.md) |
 | 22 | Ticket System Reports | [22-ticket-reports-specialist.md](./22-ticket-reports-specialist.md) | [22-ticket-reports-advanced.md](./22-ticket-reports-advanced.md) |
+| 23 | Jira Status & Workflows | [23-jira-status-workflows-specialist.md](./23-jira-status-workflows-specialist.md) | [23-jira-status-workflows-advanced.md](./23-jira-status-workflows-advanced.md) |
 
 ## AI Agent Usage
 
