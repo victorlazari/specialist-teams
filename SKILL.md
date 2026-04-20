@@ -1,6 +1,6 @@
 # Specialist Teams Knowledge Base
 
-This repository contains the ultimate reference guides for 25 different specialist domains. When an AI agent needs deep expertise, architecture patterns, code examples, or troubleshooting guidance in a specific domain, they should refer to the appropriate files in this repository.
+This repository contains the ultimate reference guides for 26 different specialist domains. When an AI agent needs deep expertise, architecture patterns, code examples, or troubleshooting guidance in a specific domain, they should refer to the appropriate files in this repository.
 
 ## Usage Instructions for AI Agents
 
@@ -38,6 +38,7 @@ This repository contains the ultimate reference guides for 25 different speciali
 | **Jira Status & Workflows** | `23-jira-status-workflows-specialist.md` | `23-jira-status-workflows-advanced.md` |
 | **SeaweedFS** | `24-seaweedfs-specialist.md` | `24-seaweedfs-advanced.md` |
 | **Speedtest (Ookla)** | `25-speedtest-specialist.md` | `25-speedtest-advanced.md` |
+| **Frontend Menu Design** | `26-frontend-menu-design-specialist.md` | `26-frontend-menu-design-advanced.md` |
 
 ## File Structure Preference
 
