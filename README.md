@@ -1,6 +1,6 @@
 # Specialist Teams
 
-A comprehensive knowledge base of 30 specialist domains for AI agents and engineering teams. Each specialist includes a main guide and an advanced guide with deep technical content, architecture patterns, code examples, and best practices sourced from official documentation.
+A comprehensive knowledge base of 31 specialist domains for AI agents and engineering teams. Each specialist includes a main guide and an advanced guide with deep technical content, architecture patterns, code examples, and best practices sourced from official documentation.
 
 ## Specialists
 
@@ -36,6 +36,7 @@ A comprehensive knowledge base of 30 specialist domains for AI agents and engine
 | 28 | Playwright E2E | [28-playwright-specialist.md](./28-playwright-specialist.md) | [28-playwright-advanced.md](./28-playwright-advanced.md) |
 | 29 | Vitest Unit Testing | [29-vitest-specialist.md](./29-vitest-specialist.md) | [29-vitest-advanced.md](./29-vitest-advanced.md) |
 | 30 | Accessibility Testing | [30-accessibility-testing-specialist.md](./30-accessibility-testing-specialist.md) | [30-accessibility-testing-advanced.md](./30-accessibility-testing-advanced.md) |
+| 31 | Jira Field Schemas | [31-jira-field-schemas-specialist.md](./31-jira-field-schemas-specialist.md) | [31-jira-field-schemas-advanced.md](./31-jira-field-schemas-advanced.md) |
 
 ## AI Agent Usage
 
