@@ -1,298 +1,330 @@
-# NemoClaw Specialist
+# NemoClaw Specialist Guide
 
-> **Role:** NVIDIA NemoClaw Platform Expert — OpenShell Integration, Blueprint System, and Enterprise Deployment
-> **Official Sources:** [GitHub Repository](https://github.com/NVIDIA/NemoClaw) | [NVIDIA Documentation](https://docs.nvidia.com/nemoclaw/latest/)
-
----
-
-## 1. Introduction and Overview
-
-NVIDIA NemoClaw is an open-source reference stack (Apache 2.0 license, 19.3k+ GitHub stars) that simplifies running OpenClaw inside NVIDIA OpenShell with managed inference, enterprise-grade security, and comprehensive deployment support. Released as alpha software on March 16, 2026, NemoClaw represents NVIDIA's commitment to making AI assistant deployment accessible while maintaining the security and performance standards expected in enterprise environments.
-
-NemoClaw is part of the broader NVIDIA Agent Toolkit ecosystem and is written primarily in TypeScript (70.4%), Shell (25.8%), and Python (2.4%). It adds a guided onboarding experience, a hardened blueprint system, state management, OpenShell-managed channel messaging, routed inference, and layered protection on top of the OpenClaw gateway.
-
-The fundamental value proposition of NemoClaw is that it transforms the process of deploying a production-ready AI assistant from a complex, multi-step manual procedure into a streamlined, opinionated workflow that follows NVIDIA's best practices for security, performance, and reliability.
+> **Role:** NVIDIA NemoClaw Platform Specialist
+> **Domain:** Sandboxed AI agent runtime, security-hardened OpenClaw deployment, NVIDIA OpenShell, inference routing
+> **Official Documentation:** [docs.nvidia.com/nemoclaw](https://docs.nvidia.com/nemoclaw/latest/) | [GitHub](https://github.com/NVIDIA/NemoClaw)
+> **License:** Apache-2.0
 
 ---
 
-## 2. System Requirements and Prerequisites
+## 1. Executive Summary and Core Philosophy
 
-Before deploying NemoClaw, specialists must ensure the target environment meets the minimum hardware and software requirements.
+NVIDIA NemoClaw is an open-source reference stack that simplifies running OpenClaw always-on assistants more safely. It installs the NVIDIA OpenShell runtime (part of NVIDIA Agent Toolkit) which provides additional security layers for running autonomous agents. NemoClaw wraps OpenClaw inside a hardened, containerized sandbox with network policies, filesystem restrictions, process isolation, and routed inference — ensuring that the AI agent operates within strictly defined boundaries [1] [2].
 
-### 2.1 Hardware Requirements
+The project was released as an **alpha / early preview** on March 16, 2026, and has rapidly gained traction with 19.9k GitHub stars, 2.5k forks, and 116 contributors. The codebase is primarily TypeScript (72.5%), Shell (23.9%), and Python (2.0%), with 1,018 commits across 507 branches and 30 tags. NemoClaw is licensed under Apache-2.0 [1].
 
-| Resource | Minimum | Recommended | Notes |
-|---|---|---|---|
-| **CPU** | 4 vCPU | 8+ vCPU | More cores improve concurrent request handling |
-| **RAM** | 8 GB | 16+ GB | Memory scales with concurrent sessions |
-| **Disk** | 20 GB | 50+ GB | Includes Docker images and snapshot storage |
-| **GPU** | Not required | NVIDIA GPU | Required for local inference with NeMo models |
+The fundamental philosophy of NemoClaw centers on the principle that **autonomous AI agents must be contained by default**. Unlike a bare OpenClaw installation where the agent has broad access to the host system, NemoClaw enforces a layered security model where no access is granted by default, and every capability must be explicitly approved by the operator. This "deny-all, approve-selectively" approach is critical for production deployments where agents run autonomously for extended periods [2].
 
-### 2.2 Software Requirements
+### 1.1 Key Capabilities
 
-| Software | Required Version | Notes |
-|---|---|---|
-| **Node.js** | 22.16+ | NemoClaw requires a slightly newer Node.js than base OpenClaw |
-| **npm** | 10+ | Comes with Node.js 22.16+ |
-| **Docker** | Latest stable | Required for containerized deployment |
-| **Git** | Latest stable | For cloning and updates |
+| Capability | Description |
+|-----------|-------------|
+| **Sandbox OpenClaw** | Creates an OpenShell sandbox pre-configured for OpenClaw, with filesystem and network policies applied from first boot |
+| **Route Inference** | Configures OpenShell inference routing (NVIDIA Endpoints, OpenAI, Anthropic, Gemini, Ollama, etc.). Agent uses `inference.local` inside sandbox; credentials stay on host |
+| **Manage the Lifecycle** | Handles blueprint versioning, digest verification, and sandbox setup |
 
-### 2.3 Supported Platforms
+### 1.2 Key Features
 
-NemoClaw supports multiple deployment platforms, each with specific considerations.
-
-**Linux + Docker** is the primary and most thoroughly tested platform. Any modern Linux distribution with Docker Engine installed is supported. This is the recommended platform for production deployments.
-
-**macOS Apple Silicon + Colima/Docker Desktop** provides development and testing support for macOS users with M-series chips. Colima is recommended over Docker Desktop for better performance and resource management. Note that GPU acceleration is not available on macOS.
-
-**DGX Spark** is NVIDIA's dedicated AI workstation platform. NemoClaw includes optimized configurations for DGX Spark that leverage the platform's GPU resources for local inference.
-
-**Windows WSL2** enables NemoClaw deployment on Windows through the Windows Subsystem for Linux 2. This requires WSL2 with a Linux distribution (Ubuntu recommended) and Docker Desktop with WSL2 backend integration.
+| Feature | Description |
+|---------|-------------|
+| **Guided Onboarding** | Validates credentials, selects providers, creates working sandbox in one command |
+| **Hardened Blueprint** | Security-first Dockerfile with capability drops, least-privilege network rules, declarative policy |
+| **State Management** | Safe migration of agent state across machines with credential stripping and integrity verification |
+| **Channel Messaging** | OpenShell-managed processes connect Telegram, Discord, Slack to sandboxed agent |
+| **Routed Inference** | Provider-routed model calls through OpenShell gateway, transparent to agent |
+| **Layered Protection** | Network, filesystem, process, and inference controls that can be hot-reloaded or locked at creation |
 
 ---
 
-## 3. Architecture and Core Components
+## 2. Architecture and How It Works
 
-NemoClaw's architecture layers on top of OpenClaw, adding enterprise-grade capabilities while preserving the flexibility of the underlying gateway.
+### 2.1 Deployment Topology
 
-### 3.1 Architectural Layers
+NemoClaw's architecture consists of four primary components that work together to provide a secure agent runtime [1]:
 
-| Layer | Component | Description |
-|---|---|---|
-| **User Interface** | Chat Platforms | WhatsApp, Telegram, Slack, etc. (inherited from OpenClaw) |
-| **Gateway** | OpenClaw Core | Message routing, channel adapters, agent runtime |
-| **Orchestration** | NemoClaw Blueprint | Hardened configuration, policy enforcement, state management |
-| **Runtime** | NVIDIA OpenShell | Managed execution environment with security boundaries |
-| **Inference** | Routed Inference | Intelligent routing to NVIDIA API, local models, or third-party providers |
-| **Security** | Layered Protection | Tier-based policies, sandbox isolation, staleness detection |
-| **State** | Snapshot System | Persistent state management with create/list/restore capabilities |
+**Sandbox** is an isolated container running the OpenClaw agent. The sandbox is created from a hardened blueprint that includes capability drops, filesystem restrictions, and network policies. The agent inside the sandbox cannot directly access the host system or the internet — all communication is mediated through the Gateway.
 
-### 3.2 OpenShell Runtime
+**Gateway** manages communication between the sandbox and external services. It handles channel connections (Telegram, Discord, Slack), webhook callbacks, and API requests. The Gateway runs on the host system and bridges the isolated sandbox to the outside world.
 
-NVIDIA OpenShell provides the managed execution environment for NemoClaw. It handles process isolation, resource allocation, and security boundary enforcement. The OpenShell runtime ensures that AI agent processes are sandboxed from the host system and from each other, preventing unauthorized access to system resources.
+**Policy Engine** enforces security policies that control what the sandbox can and cannot do. Policies cover network access (which hosts the agent can reach), filesystem access (which paths the agent can read/write), process capabilities (which system calls are allowed), and inference routing (which model providers are available).
 
-### 3.3 Blueprint System
+**Inference Router** routes model requests from the sandbox to configured providers. The agent inside the sandbox talks to `inference.local`, and the router transparently forwards requests to the actual provider (NVIDIA Endpoints, OpenAI, Anthropic, Gemini, Ollama). This design ensures that provider credentials never enter the sandbox [2].
 
-The blueprint system is NemoClaw's configuration management layer. A blueprint defines the complete specification for a NemoClaw deployment, including agent configurations, security policies, channel settings, inference routing rules, and resource limits. Blueprints are versioned and can be shared across deployments, enabling consistent configuration management across development, staging, and production environments.
+### 2.2 Integration Layers
 
-> **Key Concept:** A NemoClaw blueprint is a declarative specification that defines the entire state of a deployment. Blueprints are hardened by default, meaning they include security best practices and sensible defaults that can be customized but not accidentally weakened.
+NemoClaw operates through four integration layers, each with a specific role in the system [3]:
 
-### 3.4 Routed Inference
+| Layer | Role |
+|-------|------|
+| **Onboarding** | `nemoclaw onboard` validates credentials, selects providers, drives blueprint execution |
+| **Blueprint** | Supplies hardened image definition, default policies, capability posture, orchestration steps |
+| **State Management** | Migrates agent state across machines with credential stripping and integrity checks |
+| **Channel Messaging** | OpenShell-managed processes connect Telegram, Discord, Slack to agent |
 
-NemoClaw's routed inference system intelligently directs AI model requests to the most appropriate inference provider based on configurable rules. Requests can be routed to NVIDIA's API endpoints for cloud-based inference, to local GPU-accelerated models running on the same machine or cluster, or to third-party providers (OpenAI, Anthropic, etc.) as fallbacks. The routing system considers factors such as model availability, latency requirements, cost constraints, and data privacy policies when making routing decisions.
+### 2.3 Plugin and Blueprint Architecture
+
+NemoClaw uses a two-component architecture that separates the lightweight plugin from the heavyweight blueprint [3]:
+
+**Plugin** is a TypeScript package that registers the inference provider and `/nemoclaw` slash command inside the sandbox. The plugin is small and focused — it serves as the interface between the agent and the NemoClaw system.
+
+**Blueprint** is a versioned Python artifact that contains all logic for creating sandboxes, applying policies, configuring inference, and managing the lifecycle. The blueprint is immutable, versioned, and digest-verified to ensure supply chain safety.
+
+The relationship between plugin and blueprint follows a strict protocol: the plugin downloads the blueprint artifact, checks the version, verifies the SHA-256 digest, and then executes the blueprint as a subprocess. The blueprint determines which OpenShell resources to create or update (gateway, inference, sandbox, policy) and calls OpenShell CLI commands to create the sandbox and configure resources [3].
+
+### 2.4 Sandbox Creation Flow
+
+The sandbox creation follows a precise sequence [3]:
+
+1. Plugin downloads blueprint artifact, checks version, verifies digest
+2. Blueprint determines which OpenShell resources to create/update (gateway, inference, sandbox, policy)
+3. Blueprint calls OpenShell CLI commands to create sandbox and configure resources
+4. Agent runs inside sandbox with all controls in place
+
+### 2.5 Design Principles
+
+NemoClaw follows five core design principles that guide all architectural decisions [3]:
+
+1. **Thin plugin, versioned blueprint** — The plugin stays small; all orchestration logic lives in the blueprint
+2. **Respect CLI boundaries** — The `nemoclaw` CLI is the primary interface; avoid using `openshell` commands directly
+3. **Supply chain safety** — All artifacts are immutable, versioned, and digest-verified
+4. **OpenShell-backed lifecycle** — `nemoclaw onboard` is the supported entry point for all operations
+5. **Reproducible setup** — Running setup again recreates from the same blueprint/policy, ensuring consistency
 
 ---
 
-## 4. Installation and Onboarding
+## 3. Security Model
 
-### 4.1 Quick Installation
+### 3.1 Protection Layers
 
-NemoClaw provides a single-command installation script that handles all dependencies and configuration.
+NemoClaw implements four distinct protection layers, each addressing a different aspect of security [3]:
+
+| Layer | What It Protects | When It Applies | Mutability |
+|-------|-----------------|-----------------|------------|
+| **Network** | Blocks unauthorized outbound connections | Hot-reloadable at runtime | Can be updated without restart |
+| **Filesystem** | Prevents reads/writes outside `/sandbox` and `/tmp` | Locked at sandbox creation | Immutable after creation |
+| **Process** | Blocks privilege escalation and dangerous syscalls | Locked at sandbox creation | Immutable after creation |
+| **Inference** | Reroutes model API calls to controlled backends | Hot-reloadable at runtime | Can be updated without restart |
+
+### 3.2 Network Policy
+
+The network policy is one of NemoClaw's most critical security features. By default, the sandbox has **no network access** — all outbound connections are blocked. When the agent attempts to reach an unlisted host, OpenShell blocks the connection and surfaces it in the TUI (Terminal User Interface) for operator approval. This creates a human-in-the-loop security model where the operator must explicitly approve each new network destination [2] [3].
+
+The network policy is declarative and YAML-based, defining egress rules that specify which hosts and ports the sandbox can reach. The policy can be customized to pre-approve known-safe destinations (such as model provider APIs) while blocking everything else.
+
+### 3.3 Filesystem Isolation
+
+Filesystem isolation is enforced through Landlock, a Linux security module that restricts filesystem access at the kernel level. The sandbox can only read and write within `/sandbox` and `/tmp` — all other paths are blocked. This prevents the agent from accessing sensitive host files, modifying system configuration, or exfiltrating data through the filesystem [2].
+
+### 3.4 Process Isolation
+
+Process isolation is enforced through seccomp (secure computing mode), which filters system calls at the kernel level. The seccomp profile blocks dangerous system calls that could be used for privilege escalation, container escape, or other security violations. Additionally, the sandbox runs with dropped capabilities, meaning it cannot perform privileged operations even if a vulnerability is exploited [2].
+
+### 3.5 Inference Routing Security
+
+The inference routing layer ensures that provider credentials never enter the sandbox. The agent inside the sandbox makes inference requests to `inference.local`, which is intercepted by the OpenShell gateway and forwarded to the actual provider with the correct credentials. This design means that even if the sandbox is compromised, the attacker cannot extract API keys or access model providers directly [2] [3].
+
+### 3.6 Additional Security Features
+
+| Feature | Description |
+|---------|-------------|
+| **SHA-256 integrity verification** | All blueprint artifacts and k8s installer downloads are verified |
+| **L4 tunnel for WebSocket hosts** | Secure tunneling for WebSocket connections |
+| **GIT_SSL_CAINFO** | Support for proxy CA trust in corporate environments |
+| **.dockerignore** | Sensitive file patterns excluded from container builds |
+| **Gateway process isolation** | Gateway process runs separately from sandbox agent |
+| **Credential stripping** | State migration removes credentials before transfer |
+
+---
+
+## 4. Installation and Prerequisites
+
+### 4.1 Hardware Requirements
+
+| Resource | Minimum | Recommended |
+|----------|---------|-------------|
+| CPU | 4 vCPU | 4+ vCPU |
+| RAM | 8 GB | 16 GB |
+| Disk | 20 GB free | 40 GB free |
+
+The sandbox image is approximately 2.4 GB compressed. Systems with less than 8 GB RAM should configure swap to avoid OOM (Out of Memory) kills [1].
+
+### 4.2 Software Requirements
+
+| Software | Version | Notes |
+|----------|---------|-------|
+| Node.js | 22.16+ | Required for NemoClaw CLI |
+| npm | 10+ | Package management |
+| Docker | Latest stable | Primary container runtime |
+| Colima | Latest | Alternative for macOS |
+| Docker Desktop | Latest | Alternative for macOS/Windows |
+
+### 4.3 Supported Platforms
+
+| OS | Container Runtime | Status |
+|----|-------------------|--------|
+| **Linux** | Docker | Tested (primary) |
+| **macOS (Apple Silicon)** | Colima, Docker Desktop | Tested with limitations |
+| **DGX Spark** | Docker | Tested |
+| **Windows WSL2** | Docker Desktop (WSL backend) | Tested with limitations |
+
+### 4.4 Installation
+
+NemoClaw is installed via a single command that runs as a normal user (no sudo/root required). The installer sets up Node.js via nvm and NemoClaw via npm [1]:
 
 ```bash
-# Download and run the NemoClaw installer
-curl -fsSL https://www.nvidia.com/nemoclaw.sh | bash
+curl -fsSL https://raw.githubusercontent.com/NVIDIA/NemoClaw/main/install.sh | bash
 ```
 
-This script performs the following actions. It verifies system requirements (Node.js version, Docker availability, hardware resources). It downloads the NemoClaw package and its dependencies. It runs the interactive onboarding wizard. It configures the OpenShell runtime environment. It creates the initial blueprint with hardened defaults.
-
-### 4.2 Interactive Onboarding
-
-The `nemoclaw onboard` command launches an interactive wizard that guides specialists through the initial configuration process.
+After installation, the guided onboarding process creates the sandbox:
 
 ```bash
 nemoclaw onboard
 ```
 
-The onboarding wizard covers the following steps. It prompts for the deployment name and environment (development, staging, production). It configures channel connections (API keys, tokens, webhook URLs). It sets up inference routing (NVIDIA API key, local model paths, third-party provider keys). It defines security policies (access control, content policies, rate limits). It creates the initial snapshot for state recovery.
+### 4.5 Key CLI Commands
 
-### 4.3 Post-Installation Verification
+| Command | Purpose |
+|---------|---------|
+| `nemoclaw onboard` | Create/recreate OpenShell gateway or sandbox |
+| `nemoclaw status` | Check system status |
 
-After installation, verify the deployment is functioning correctly:
-
-```bash
-# Check NemoClaw status
-nemoclaw status
-
-# Verify all services are running
-nemoclaw health
-
-# Test channel connectivity
-nemoclaw test channels
-```
+> **Important:** Avoid using `openshell self-update` or `openshell gateway start --recreate` directly. Always use the `nemoclaw` CLI as the primary interface [1].
 
 ---
 
-## 5. CLI Reference
+## 5. Inference Configuration
 
-NemoClaw provides a comprehensive CLI for managing all aspects of the deployment.
+### 5.1 Supported Inference Providers
 
-| Command | Description | Example |
-|---|---|---|
-| `nemoclaw onboard` | Interactive setup wizard | `nemoclaw onboard` |
-| `nemoclaw status` | Display deployment status | `nemoclaw status` |
-| `nemoclaw health` | Run health checks | `nemoclaw health` |
-| `nemoclaw start` | Start all services | `nemoclaw start` |
-| `nemoclaw stop` | Stop all services | `nemoclaw stop` |
-| `nemoclaw restart` | Restart all services | `nemoclaw restart` |
-| `nemoclaw snapshot create` | Create a state snapshot | `nemoclaw snapshot create --name "v1.0"` |
-| `nemoclaw snapshot list` | List all snapshots | `nemoclaw snapshot list` |
-| `nemoclaw snapshot restore` | Restore from snapshot | `nemoclaw snapshot restore --name "v1.0"` |
-| `nemoclaw blueprint show` | Display current blueprint | `nemoclaw blueprint show` |
-| `nemoclaw blueprint validate` | Validate blueprint syntax | `nemoclaw blueprint validate` |
-| `nemoclaw logs` | View service logs | `nemoclaw logs --follow` |
-| `nemoclaw update` | Update NemoClaw | `nemoclaw update` |
+NemoClaw supports multiple inference providers, all routed transparently through the OpenShell gateway [2]:
 
----
+| Provider | Type | Notes |
+|----------|------|-------|
+| **NVIDIA Endpoints** | Cloud | NVIDIA's hosted inference service |
+| **OpenAI** | Cloud | GPT-4, GPT-4o, etc. |
+| **Anthropic** | Cloud | Claude models |
+| **Google Gemini** | Cloud | Gemini models |
+| **Ollama** | Local | Self-hosted open-source models |
+| **Compatible Endpoints** | Any | Any OpenAI-compatible API |
 
-## 6. Security Architecture
+### 5.2 Inference Routing Mechanism
 
-NemoClaw implements a multi-layered security architecture that provides defense in depth.
+The inference routing is completely transparent to the agent. Inside the sandbox, the agent makes API calls to `inference.local`, which is a virtual endpoint managed by OpenShell. The OpenShell gateway intercepts these calls and routes them to the configured provider with the correct credentials. The agent never sees the actual provider URL or API key [3].
 
-### 6.1 Tier-Based Policy Selector
+This architecture provides several benefits. First, provider switching can be done without modifying the agent's code or configuration. Second, credentials are never exposed to the sandbox, even if the agent is compromised. Third, the operator can monitor and audit all inference requests at the gateway level. Fourth, failover between providers can be configured at the routing level [3].
 
-The policy selector allows administrators to define security tiers that control access to different capabilities. Each tier specifies which channels, agents, tools, and inference providers are available.
+### 5.3 Local Inference with Ollama
 
-| Tier | Access Level | Typical Use |
-|---|---|---|
-| **Public** | Read-only, limited responses | Public-facing chatbots with restricted capabilities |
-| **Standard** | Full chat, basic tools | Internal team members with standard AI access |
-| **Privileged** | All tools, code execution | Developers and engineers with full agent capabilities |
-| **Admin** | Full access + configuration | System administrators with deployment management |
+For privacy-sensitive deployments or offline operation, NemoClaw supports local inference through Ollama. When configured for local inference, all model requests are processed on the host machine without any data leaving the network. This is particularly useful for air-gapped environments or when processing sensitive data [2].
 
-### 6.2 Sandbox Version Staleness Detection
+### 5.4 Switching Inference Providers
 
-NemoClaw monitors the versions of all components (OpenClaw, OpenShell, Node.js, Docker images) and alerts administrators when any component becomes stale. Stale components may contain known vulnerabilities, and the staleness detection system provides actionable recommendations for updates.
-
-### 6.3 Layered Protection
-
-The security architecture implements protection at multiple layers. Network-level protection includes TLS encryption, firewall rules, and VPC isolation. Application-level protection includes authentication, authorization, and rate limiting. Agent-level protection includes tool access control, content policies, and output filtering. Data-level protection includes encryption at rest, encryption in transit, and audit logging.
+Switching between inference providers is a hot-reloadable operation — it can be done at runtime without restarting the sandbox. The operator updates the inference configuration, and the OpenShell gateway begins routing requests to the new provider immediately [2].
 
 ---
 
-## 7. State Management and Snapshots
+## 6. Network Policy Management
 
-NemoClaw's snapshot system provides robust state management capabilities that enable backup, recovery, and migration of deployments.
+### 6.1 Default Network Policy
 
-### 7.1 Creating Snapshots
+By default, NemoClaw blocks all outbound network connections from the sandbox. This "deny-all" default ensures that the agent cannot communicate with any external service unless explicitly approved. When the agent attempts to reach an unlisted host, the connection is blocked and the host is surfaced in the operator's TUI for review [2] [3].
 
-Snapshots capture the complete state of a NemoClaw deployment, including the blueprint configuration, session data, plugin state, and system settings.
+### 6.2 Approving Network Requests
 
-```bash
-# Create a named snapshot
-nemoclaw snapshot create --name "pre-upgrade-backup"
+When the agent needs to access a new network destination, the operator sees a notification in the TUI showing the requested host, port, and the context of the request. The operator can then approve or deny the request. Approved hosts are added to the network policy, and subsequent requests to the same host are allowed automatically [2].
 
-# Create a snapshot with description
-nemoclaw snapshot create --name "v2.0-release" --description "Production release v2.0"
-```
+### 6.3 Customizing the Network Policy
 
-### 7.2 Restoring from Snapshots
-
-```bash
-# List available snapshots
-nemoclaw snapshot list
-
-# Restore a specific snapshot
-nemoclaw snapshot restore --name "pre-upgrade-backup"
-```
-
-### 7.3 Snapshot Best Practices
-
-Specialists should create snapshots before any significant configuration changes, before upgrading NemoClaw or its dependencies, on a regular schedule (daily for production environments), and before and after security policy changes. Snapshots should be stored in a durable location (e.g., S3, NFS) and tested regularly to ensure they can be restored successfully.
-
----
-
-## 8. Kubernetes and Docker Deployment
-
-### 8.1 Docker Deployment
-
-NemoClaw includes a Dockerfile for containerized deployment.
-
-```bash
-# Build the NemoClaw Docker image
-docker build -t nemoclaw:latest .
-
-# Run NemoClaw in Docker
-docker run -d \
-  --name nemoclaw \
-  -p 3000:3000 \
-  -v nemoclaw-data:/data \
-  -e NVIDIA_API_KEY=your-key \
-  nemoclaw:latest
-```
-
-### 8.2 Kubernetes Deployment
-
-NemoClaw provides sample Kubernetes manifests for cluster deployment.
+For production deployments, operators can pre-configure the network policy to approve known-safe destinations:
 
 ```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: nemoclaw
-  namespace: ai-agents
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: nemoclaw
-  template:
-    metadata:
-      labels:
-        app: nemoclaw
-    spec:
-      containers:
-      - name: nemoclaw
-        image: nvcr.io/nvidia/nemoclaw:latest
-        ports:
-        - containerPort: 3000
-        env:
-        - name: NVIDIA_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: nemoclaw-secrets
-              key: nvidia-api-key
-        resources:
-          requests:
-            cpu: "2"
-            memory: "4Gi"
-          limits:
-            cpu: "4"
-            memory: "8Gi"
-        volumeMounts:
-        - name: data
-          mountPath: /data
-      volumes:
-      - name: data
-        persistentVolumeClaim:
-          claimName: nemoclaw-pvc
+# Example network policy
+egress:
+  - host: "api.openai.com"
+    port: 443
+    protocol: tcp
+    description: "OpenAI API"
+  - host: "api.anthropic.com"
+    port: 443
+    protocol: tcp
+    description: "Anthropic API"
+  - host: "*.githubusercontent.com"
+    port: 443
+    protocol: tcp
+    description: "GitHub raw content"
 ```
 
 ---
 
-## 9. Troubleshooting
+## 7. Channel Messaging
 
-| Issue | Cause | Resolution |
-|---|---|---|
-| Installation script fails | Missing prerequisites | Run `nemoclaw health` to identify missing dependencies |
-| Docker containers not starting | Port conflicts or resource limits | Check `docker logs nemoclaw` and verify port availability |
-| Inference routing errors | Invalid API keys or unreachable endpoints | Verify provider configuration in blueprint |
-| Snapshot restore fails | Corrupted snapshot or version mismatch | Try an older snapshot; check NemoClaw version compatibility |
-| Staleness warnings | Outdated components | Run `nemoclaw update` to update all components |
-| OpenShell connection errors | Docker daemon not running | Start Docker daemon and restart NemoClaw |
+### 7.1 Supported Channels
+
+NemoClaw supports connecting the sandboxed agent to messaging platforms through OpenShell-managed channel processes [2]:
+
+| Channel | Status | Notes |
+|---------|--------|-------|
+| **Telegram** | Supported | Bot API integration |
+| **Discord** | Supported | Bot API + Gateway |
+| **Slack** | Supported | Bolt SDK integration |
+
+### 7.2 Channel Architecture
+
+Channel messaging in NemoClaw follows a specific architecture where the channel process runs on the host (outside the sandbox) and communicates with the sandboxed agent through the OpenShell gateway. This design ensures that channel credentials (bot tokens, API keys) never enter the sandbox [2].
 
 ---
 
-## 10. Advanced Topics
+## 8. State Management and Migration
 
-For advanced blueprint customization, policy tier configuration, snapshot management strategies, OpenShell gateway internals, DGX Spark deployment, and enterprise scaling patterns, refer to the companion document **[02-nemoclaw-advanced.md](./02-nemoclaw-advanced.md)**.
+### 8.1 State Migration
+
+NemoClaw provides safe migration of agent state across machines. The state management system handles credential stripping (removing sensitive data before transfer), integrity verification (ensuring state has not been tampered with), and version compatibility (ensuring the target machine can accept the state format) [2] [3].
+
+### 8.2 Blueprint Versioning
+
+Blueprints are versioned artifacts that define the complete sandbox configuration. Each blueprint version is immutable and digest-verified, ensuring that the same blueprint always produces the same sandbox configuration. This reproducibility is critical for production deployments where consistency across environments is required [3].
+
+---
+
+## 9. Repository Structure
+
+The NemoClaw repository is organized into the following directories [1]:
+
+| Directory | Purpose |
+|-----------|---------|
+| `.agents/skills` | Agent skills |
+| `.claude` | Claude-specific docs-as-skills |
+| `agents/` | Agent configurations |
+| `bin/` | CLI binaries and policy tools |
+| `ci/` | CI/CD configurations |
+| `docs/` | Documentation |
+| `nemoclaw-blueprint/` | Hardened blueprint configurations |
+| `nemoclaw/` | Core NemoClaw module |
+| `schemas/` | JSON schemas for policy and configuration |
+| `scripts/` | Installation and utility scripts |
+| `src/` | TypeScript source code |
+| `test/` | Test suites (uses Vitest) |
+
+---
+
+## 10. Documentation Structure
+
+The official NVIDIA documentation for NemoClaw is organized into the following sections [2]:
+
+| Section | Topics |
+|---------|--------|
+| **About NemoClaw** | Overview, How It Works, Ecosystem, Release Notes |
+| **Get Started** | Prerequisites, Quickstart |
+| **Inference** | Inference Options, Use Local Inference, Switch Inference Providers |
+| **Network Policy** | Approve or Deny Network Requests, Customize the Network Policy |
+| **Security** | Security Best Practices, Credential Storage, OpenClaw Controls |
+| **Deployment** | Deploy to Remote GPU Instance, Set Up Telegram, Sandbox Hardening |
+| **Workspace** | Workspace files section |
 
 ---
 
 ## References
 
-1. NVIDIA NemoClaw GitHub Repository — https://github.com/NVIDIA/NemoClaw
-2. NVIDIA NemoClaw Documentation — https://docs.nvidia.com/nemoclaw/latest/
-3. NVIDIA OpenShell Documentation — https://docs.nvidia.com/openshell/
-4. NVIDIA Agent Toolkit — https://developer.nvidia.com/agent-toolkit
-5. OpenClaw Documentation — https://docs.openclaw.ai/
+[1]: [NVIDIA NemoClaw GitHub Repository](https://github.com/NVIDIA/NemoClaw)
+[2]: [NVIDIA NemoClaw Official Documentation - Overview](https://docs.nvidia.com/nemoclaw/latest/about/overview.html)
+[3]: [NVIDIA NemoClaw - How It Works](https://docs.nvidia.com/nemoclaw/latest/about/how-it-works.html)

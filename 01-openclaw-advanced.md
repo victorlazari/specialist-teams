@@ -1,279 +1,259 @@
-# OpenClaw Specialist — Advanced Topics
+# OpenClaw Advanced Guide
 
-> **Parent Document:** [01-openclaw-specialist.md](./01-openclaw-specialist.md)
-> **Official Sources:** [OpenClaw Documentation](https://docs.openclaw.ai/) | [GitHub Repository](https://github.com/openclaw/openclaw)
-
----
-
-## 1. Advanced Multi-Agent Routing Patterns
-
-Beyond basic routing rules, OpenClaw supports sophisticated multi-agent orchestration patterns that enable complex AI workflows.
-
-### 1.1 Cascading Agent Chains
-
-In a cascading pattern, the output of one agent becomes the input for another. This is useful for workflows where a research agent gathers information, a coding agent processes it, and a review agent validates the output. The routing configuration supports chaining through the `next` property on agent definitions.
-
-### 1.2 Conditional Routing with Content Analysis
-
-OpenClaw can analyze incoming message content to determine routing. Using regex patterns, keyword matching, or even a lightweight classifier agent, messages can be directed to specialized agents. For example, messages containing code snippets route to the coder agent, while questions about documentation route to the researcher agent.
-
-### 1.3 Load-Balanced Agent Pools
-
-For high-traffic deployments, multiple instances of the same agent can be configured as a pool. OpenClaw distributes incoming messages across pool members using round-robin or least-connections algorithms, ensuring even load distribution and improved response times.
+> **Role:** OpenClaw Platform Specialist — Advanced Patterns
+> **Domain:** Plugin development, security hardening, scaling, remote access, formal verification
+> **Official Documentation:** [docs.openclaw.ai](https://docs.openclaw.ai/)
 
 ---
 
-## 2. Custom Plugin Development
+## 1. Advanced Plugin Development
 
-Developing custom plugins for OpenClaw requires understanding the plugin lifecycle and available hooks.
+### 1.1 Plugin Architecture Deep Dive
 
-### 2.1 Plugin Structure
+OpenClaw plugins are packages that register any combination of channels, model providers, tools, skills, and speech capabilities. The plugin system follows a lifecycle-aware architecture where plugins are loaded at Gateway startup and can hook into every phase of message processing and agent execution. Plugins are the primary mechanism for extending OpenClaw beyond its built-in capabilities [1].
 
-```
-my-plugin/
-├── package.json
-├── index.js
-├── README.md
-└── config.schema.json
-```
+A plugin must export a registration function that receives the Gateway context and registers its capabilities. The registration function has access to the full Gateway API, including channel management, session storage, event emission, and configuration access. Plugins can declare dependencies on other plugins, and the Gateway resolves the dependency graph at startup to ensure correct loading order.
 
-### 2.2 Plugin Lifecycle Hooks
+### 1.2 Custom Channel Adapter Development
 
-| Hook | Trigger | Use Case |
-|---|---|---|
-| `onInit` | Plugin loaded | Initialize resources, validate configuration |
-| `onMessageReceived` | Message arrives | Content filtering, logging, transformation |
-| `onBeforeAgentProcess` | Before agent invocation | Inject context, modify prompts |
-| `onAfterAgentProcess` | After agent response | Post-processing, compliance checks |
-| `onMessageSent` | Response delivered | Analytics, audit logging |
-| `onError` | Error occurs | Custom error handling, alerting |
-| `onShutdown` | Gateway stopping | Cleanup resources, flush buffers |
+Creating a custom channel adapter requires implementing the Channel interface, which defines methods for connecting to the external service, receiving messages, sending responses, and handling media attachments. The adapter must normalize incoming messages into OpenClaw's internal message format and convert outgoing messages back into the platform-native format [1].
 
-### 2.3 Plugin API Example
+Key considerations for channel adapter development include connection lifecycle management (reconnection logic, backoff strategies), message deduplication (preventing duplicate processing of the same message), rate limiting (respecting platform API limits), and media transcoding (converting between platform-specific media formats).
 
-```javascript
-module.exports = {
-  name: 'my-custom-plugin',
-  version: '1.0.0',
+### 1.3 Custom Tool Development
 
-  onInit(context) {
-    console.log('Plugin initialized with config:', context.config);
-  },
+Custom tools extend the agent's capabilities by providing new actions it can perform. Each tool must define a JSON Schema for its input parameters, implement the execution logic, and return structured output. Tools can be synchronous or asynchronous, and the agent loop handles both patterns transparently [1].
 
-  onMessageReceived(message, context) {
-    // Log all incoming messages
-    context.logger.info(`Message from ${message.user}: ${message.text}`);
-    // Return modified message or null to block
-    return message;
-  },
-
-  onAfterAgentProcess(response, context) {
-    // Add disclaimer to all responses
-    response.text += '\n\n_This response was generated by AI._';
-    return response;
-  }
-};
-```
-
----
-
-## 3. Lobster Workflow Pipelines — Deep Dive
-
-Lobster is OpenClaw's built-in workflow engine for orchestrating complex, multi-step automated processes.
-
-### 3.1 Workflow Definition Language
-
-Lobster workflows are defined in YAML and support variables, conditionals, loops, error handling, and parallel execution. Each step in a workflow can invoke an agent, execute a tool, send a message, or call an external API.
-
-### 3.2 Advanced Workflow Patterns
-
-**Parallel Execution:** Multiple steps can run concurrently using the `parallel` block, with results aggregated before proceeding to the next sequential step.
-
-**Conditional Branching:** The `if` directive allows workflows to branch based on the output of previous steps, enabling dynamic behavior.
-
-**Error Handling:** The `onError` block defines fallback actions when a step fails, such as retrying, sending an alert, or executing an alternative path.
-
-**Sub-workflows:** Workflows can invoke other workflows, enabling modular composition of complex processes.
-
-```yaml
-name: advanced-pipeline
-trigger:
-  webhook: /api/trigger/pipeline
-steps:
-  - id: gather
-    parallel:
-      - agent: researcher
-        action: search
-        query: "{{input.topic}}"
-        output: research
-      - agent: researcher
-        action: search
-        query: "{{input.topic}} trends"
-        output: trends
-  - id: analyze
-    agent: analyst
-    action: generate
-    prompt: "Analyze: {{research}} and {{trends}}"
-    output: analysis
-    onError:
-      - channel: slack
-        action: send
-        target: "#alerts"
-        message: "Pipeline failed at analysis step"
-  - id: deliver
-    if: "{{analysis.confidence > 0.8}}"
-    channel: slack
-    action: send
-    target: "{{input.channel}}"
-    message: "{{analysis.report}}"
-```
-
----
-
-## 4. Performance Tuning
-
-### 4.1 Connection Pooling
-
-For high-throughput deployments, configure connection pooling for both channel adapters and model provider connections. This reduces the overhead of establishing new connections for each request.
-
-### 4.2 Session Storage Optimization
-
-The default in-memory session store works well for single-server deployments but becomes a bottleneck at scale. For production environments, configure an external session store such as Redis or PostgreSQL. This enables session persistence across restarts and supports multi-instance deployments.
-
-### 4.3 Message Queue Integration
-
-For deployments handling thousands of concurrent messages, integrate a message queue (such as RabbitMQ or Redis Streams) between the channel adapters and the agent runtime. This decouples message ingestion from processing, providing backpressure handling and improved resilience.
-
-### 4.4 Resource Limits
-
-Configure per-agent resource limits to prevent any single agent from consuming excessive resources. This includes maximum concurrent sessions, token budgets per session, and tool invocation rate limits.
-
----
-
-## 5. Scaling the Gateway
-
-### 5.1 Horizontal Scaling
-
-OpenClaw can be scaled horizontally by running multiple instances behind a load balancer. When scaling horizontally, ensure that session state is externalized (e.g., to Redis) and that webhook endpoints are properly configured for all instances.
-
-### 5.2 Vertical Scaling
-
-For single-instance deployments, vertical scaling involves increasing the Node.js heap size, optimizing garbage collection parameters, and ensuring sufficient CPU and memory resources.
-
-```bash
-# Increase Node.js heap size to 4GB
-NODE_OPTIONS="--max-old-space-size=4096" openclaw start
-```
-
----
-
-## 6. Security Hardening — Advanced
-
-### 6.1 Allowlist Configuration
-
-```json
-{
-  "security": {
-    "allowlists": {
-      "global": ["user1@example.com", "user2@example.com"],
-      "channels": {
-        "slack": {
-          "workspaces": ["T12345678"],
-          "users": ["U12345678"]
-        }
+```typescript
+// Example custom tool registration
+export function register(gateway) {
+  gateway.registerTool({
+    name: 'database_query',
+    description: 'Execute a read-only SQL query against the analytics database',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'SQL SELECT query' },
+        database: { type: 'string', enum: ['analytics', 'reporting'] }
       },
-      "agents": {
-        "coder": {
-          "users": ["admin@example.com"]
-        }
-      }
-    }
-  }
-}
-```
-
-### 6.2 Content Policies
-
-Define content policies that agents must follow, including prohibited topics, output format restrictions, and mandatory disclaimers. Content policies are enforced at the gateway level, ensuring compliance regardless of the underlying model's behavior.
-
-### 6.3 Audit Logging
-
-Enable comprehensive audit logging to track all message flows, agent invocations, tool usage, and configuration changes. Audit logs should be shipped to a centralized logging system for analysis and compliance reporting.
-
----
-
-## 7. Remote Access Patterns
-
-### 7.1 SSH Tunneling
-
-```bash
-# Forward local port 3000 to remote OpenClaw instance
-ssh -L 3000:localhost:3000 user@remote-server
-```
-
-### 7.2 Tailscale Integration
-
-Tailscale provides a zero-configuration VPN that enables secure access to OpenClaw instances without exposing ports to the public internet. Install Tailscale on both the server and client, and access OpenClaw via the Tailscale IP address.
-
-### 7.3 Cloudflare Tunnel
-
-Cloudflare Tunnel creates a secure, outbound-only connection from the OpenClaw server to Cloudflare's edge network, eliminating the need for inbound firewall rules.
-
----
-
-## 8. Mobile Node Pairing
-
-OpenClaw's mobile nodes (iOS Canvas and Android Canvas) extend the gateway's capabilities to mobile devices. Mobile nodes can provide camera access, voice input, location data, and push notifications. Pairing is done through the Web Control UI by scanning a QR code, which establishes an encrypted WebSocket connection between the mobile device and the gateway.
-
----
-
-## 9. Custom Provider Configuration
-
-### 9.1 Self-Hosted Models
-
-OpenClaw supports connecting to self-hosted model inference servers using OpenAI-compatible APIs. This includes vLLM, SGLang, Ollama, and LM Studio.
-
-```json
-{
-  "providers": {
-    "local-vllm": {
-      "type": "openai-compatible",
-      "baseUrl": "http://localhost:8000/v1",
-      "apiKey": "not-needed",
-      "models": ["meta-llama/Llama-3.1-70B-Instruct"]
+      required: ['query']
     },
-    "ollama": {
-      "type": "openai-compatible",
-      "baseUrl": "http://localhost:11434/v1",
-      "apiKey": "ollama",
-      "models": ["llama3.1", "codellama"]
+    execute: async ({ query, database }) => {
+      if (!/^\s*SELECT/i.test(query)) {
+        throw new Error('Only SELECT queries are allowed');
+      }
+      const results = await executeQuery(database || 'analytics', query);
+      return { rows: results.rows, rowCount: results.rowCount };
     }
-  }
+  });
 }
 ```
 
+### 1.4 Skill Authoring Best Practices
+
+Skills are markdown files (`SKILL.md`) injected into the system prompt to shape agent behavior. Advanced skill authoring involves structuring the markdown to maximize the model's adherence to instructions. Best practices include using clear section headers, providing explicit examples of desired behavior, defining error handling procedures, and specifying output formats. Skills should be modular and composable, allowing operators to combine multiple skills for different use cases [1].
+
 ---
 
-## 10. Production Deployment Checklist
+## 2. Security Hardening and Threat Model
+
+### 2.1 Authentication Layers
+
+OpenClaw implements multiple authentication layers that can be combined for defense in depth [2]:
+
+| Layer | Mechanism | Use Case |
+|-------|-----------|----------|
+| **Token Auth** | Shared secret in `Authorization` header | API clients, automation |
+| **Password Auth** | Password-based WebSocket connect | Human operators |
+| **Pairing** | Device identity + operator approval | New device onboarding |
+| **Trusted Proxy** | Header-based identity from reverse proxy | Behind nginx/Caddy/Traefik |
+| **Tailscale** | WireGuard-based mesh VPN | Zero-config remote access |
+
+### 2.2 Network Security
+
+The Gateway defaults to binding on loopback (`127.0.0.1`), preventing external network access unless explicitly configured. For production deployments, the recommended approach is to keep the loopback binding and use a reverse proxy (nginx, Caddy, or Traefik) with TLS termination for external access. Alternatively, Tailscale integration provides zero-config encrypted remote access without exposing ports to the public internet [2].
+
+### 2.3 MITRE ATLAS Threat Model
+
+OpenClaw's documentation includes a formal threat model based on the MITRE ATLAS framework, which maps adversarial techniques specific to AI/ML systems. The threat model covers prompt injection attacks (direct and indirect), model manipulation, data poisoning through tool results, session hijacking, and privilege escalation through tool abuse. Each threat is mapped to specific mitigations implemented in the Gateway [2].
+
+Key mitigations include tool allow/deny lists that restrict which tools an agent can use, session isolation that prevents cross-session data leakage, input validation at the Gateway level before messages reach the agent, and output filtering that can detect and block sensitive data in responses.
+
+### 2.4 Formal Verification
+
+OpenClaw includes formal verification models for its security properties. These models mathematically prove that certain security invariants hold under all possible execution paths. The formal verification covers properties such as session isolation (no information flow between sessions), tool access control (deny list always overrides allow list), and authentication enforcement (no unauthenticated access to protected endpoints) [2].
+
+### 2.5 Sandboxing and Process Isolation
+
+For deployments requiring additional security, OpenClaw supports running agents inside sandboxed environments. The sandbox isolates the agent's filesystem, network access, and process capabilities. This is particularly important when agents have access to tools like `exec` that can execute arbitrary commands. The sandbox configuration supports Landlock (filesystem restrictions), seccomp (system call filtering), and network namespace isolation [2].
+
+---
+
+## 3. Scaling and High Availability
+
+### 3.1 Single-Instance Optimization
+
+The primary scaling strategy for OpenClaw is vertical scaling of the single Gateway instance. The Gateway is designed to handle hundreds of concurrent sessions on modest hardware. Key optimization parameters include session compaction frequency (reducing memory usage for long conversations), tool timeout configuration (preventing runaway tool executions), and model provider connection pooling [2].
+
+### 3.2 Resource Requirements
+
+| Deployment Size | CPU | RAM | Disk | Concurrent Sessions |
+|----------------|-----|-----|------|-------------------|
+| Personal (1-5 users) | 2 cores | 4 GB | 10 GB | 10-20 |
+| Team (5-20 users) | 4 cores | 8 GB | 20 GB | 50-100 |
+| Organization (20-100 users) | 8 cores | 16 GB | 50 GB | 200-500 |
+
+### 3.3 Multi-Gateway Topology
+
+For organizations requiring horizontal scaling or geographic distribution, OpenClaw supports multi-gateway topologies where each Gateway instance handles a subset of channels or users. Session state can be shared through external storage backends, and a load balancer distributes incoming connections across Gateway instances. However, the constraint that only one Gateway per host can maintain channel sessions (especially WhatsApp via Baileys) must be carefully managed [2].
+
+### 3.4 Monitoring and Observability
+
+The Gateway emits health, heartbeat, and presence events that can be consumed by monitoring systems. The `openclaw gateway status --json` command provides machine-readable status output suitable for integration with Prometheus, Grafana, or custom monitoring dashboards. Key metrics to monitor include active session count, agent run duration, tool execution latency, model provider response times, and channel connection status [2].
+
+---
+
+## 4. Remote Access and Deployment Patterns
+
+### 4.1 Tailscale Integration
+
+OpenClaw provides first-class integration with Tailscale for zero-config remote access. Tailscale creates a WireGuard-based mesh VPN that connects all devices in a tailnet, enabling secure access to the Gateway from anywhere without exposing ports to the public internet. The integration supports Tailscale Serve for automatic HTTPS certificate provisioning and Tailscale Funnel for public access when needed [2].
+
+### 4.2 Reverse Proxy Configuration
+
+For production deployments behind a reverse proxy, OpenClaw supports trusted-proxy authentication where the proxy forwards authenticated user identity via headers. The Gateway validates these headers and maps them to internal user identities. This pattern is commonly used with nginx, Caddy, or Traefik in containerized deployments [2].
+
+### 4.3 Remote GPU Deployment
+
+For agents that require GPU-accelerated inference (e.g., running local models via Ollama or vLLM), OpenClaw supports deployment on remote GPU instances. The Gateway can be configured to route inference requests to a remote GPU server while maintaining the channel connections on a lightweight frontend instance. This separation allows cost-effective scaling where GPU resources are only used for inference [2].
+
+### 4.4 Containerized Deployment
+
+OpenClaw can be deployed in Docker containers for consistent, reproducible deployments. The containerized deployment includes the Gateway process, all configured channel adapters, and the tool runtime. Persistent volumes are used for session storage and configuration. Docker Compose templates are available for common deployment patterns including single-instance, multi-gateway, and GPU-accelerated configurations [2].
+
+---
+
+## 5. Advanced Agent Patterns
+
+### 5.1 Sub-Agent Orchestration
+
+OpenClaw supports sub-agent orchestration where a primary agent can spawn and coordinate secondary agents for specialized tasks. The `subagents` tool allows the primary agent to create sub-agents with specific configurations, delegate tasks, and aggregate results. This pattern is useful for complex workflows that require different expertise or tool access levels [3].
+
+### 5.2 Session Model Override
+
+The `session_status` tool provides a lightweight mechanism for agents to override the model used for a specific session. This enables dynamic model selection based on task complexity — for example, using a faster, cheaper model for simple queries and switching to a more capable model for complex reasoning tasks [3].
+
+### 5.3 Cross-Channel Messaging
+
+The `message` tool enables agents to send messages across any connected channel, not just the channel where the conversation originated. This enables patterns like receiving a request via Telegram and posting the result to a Slack channel, or broadcasting notifications across multiple platforms simultaneously [1].
+
+### 5.4 Cron-Driven Automation
+
+The `cron` tool enables agents to schedule recurring tasks. Combined with the `gateway` tool (which can inspect and modify Gateway configuration), agents can implement self-managing automation workflows. For example, an agent could schedule a daily code review, monitor system health metrics, or generate periodic reports [1].
+
+### 5.5 Node Integration
+
+Nodes (macOS, iOS, Android, headless) extend the agent's reach to physical devices. Through the `nodes` tool, agents can discover paired devices and execute device-specific commands such as `canvas.*` (present content, evaluate JavaScript, take snapshots), `camera.*` (capture photos/video), `screen.record` (record screen), and `location.get` (retrieve device location). This enables powerful IoT and automation scenarios [2].
+
+---
+
+## 6. Configuration Reference
+
+### 6.1 Core Configuration Structure
+
+The configuration file at `~/.openclaw/openclaw.json` follows a hierarchical structure:
+
+```
+openclaw.json
+├── agents
+│   ├── defaults
+│   │   ├── model.primary
+│   │   ├── model.fallback
+│   │   └── tools
+│   └── <agentId>
+│       ├── provider
+│       ├── model
+│       ├── systemPrompt
+│       ├── tools
+│       └── skills
+├── channels
+│   └── <channelName>
+│       ├── enabled
+│       └── <channel-specific config>
+├── providers
+│   └── <providerName>
+│       └── apiKey
+├── tools
+│   ├── allow
+│   ├── deny
+│   └── byProvider
+├── gateway
+│   ├── port (default: 18789)
+│   ├── bind (default: 127.0.0.1)
+│   ├── auth
+│   └── reload (off|hot|restart|hybrid)
+└── sessions
+    ├── storage
+    ├── compaction
+    └── ttl
+```
+
+### 6.2 Environment Variables
+
+OpenClaw supports environment variable overrides for sensitive configuration values. Provider API keys, channel tokens, and authentication secrets can all be specified via environment variables, keeping them out of the configuration file. The naming convention follows `OPENCLAW_<SECTION>_<KEY>` format [1].
+
+---
+
+## 7. Troubleshooting Guide
+
+### 7.1 Common Issues and Resolutions
+
+| Issue | Diagnosis | Resolution |
+|-------|-----------|------------|
+| Gateway fails to start | Check `openclaw doctor` output | Verify Node.js version, port availability, config syntax |
+| Channel not connecting | Check `openclaw gateway status --deep` | Verify credentials, network access, platform API status |
+| Agent not responding | Check agent logs via `openclaw logs --follow` | Verify model provider API key, check rate limits |
+| Tool execution failing | Check tool-specific error in agent events | Verify tool permissions in allow/deny lists |
+| Session state lost | Check session storage backend | Verify disk space, file permissions |
+| High memory usage | Check active session count | Configure session TTL, increase compaction frequency |
+| WebSocket disconnections | Check network stability | Configure reconnection backoff, check proxy timeouts |
+| Pairing rejected | Check device identity in logs | Re-pair device, verify signature version |
+| Hot reload not applying | Check reload mode in config | Ensure `hybrid` or `hot` mode is set |
+| VoiceClaw not connecting | Check `/voiceclaw/realtime` endpoint | Verify Gemini Live credentials, WebSocket path |
+
+### 7.2 Log Analysis
+
+The `openclaw logs --follow` command streams real-time logs from the Gateway. Logs are structured JSON, making them suitable for parsing with tools like `jq`. Key log fields include `level` (error, warn, info, debug), `component` (gateway, channel, agent, tool), `sessionId`, `runId`, and `message` [2].
+
+### 7.3 Performance Profiling
+
+For performance issues, the Gateway supports Node.js profiling through the `--inspect` flag. This enables connection with Chrome DevTools for CPU profiling, heap snapshots, and event loop analysis. Common performance bottlenecks include excessive session history (resolved by compaction), synchronous tool executions blocking the event loop, and memory leaks in long-running sessions [2].
+
+---
+
+## 8. Production Deployment Checklist
 
 | Item | Status | Notes |
-|---|---|---|
+|------|--------|-------|
 | Node.js version verified (22.14+ or 24) | ☐ | Use `node -v` to confirm |
 | Daemon installed and auto-start configured | ☐ | `openclaw onboard --install-daemon` |
 | All API keys stored in environment variables | ☐ | Never hardcode in config |
 | Allowlists configured for all channels | ☐ | Restrict access to authorized users |
-| SSL/TLS enabled for webhooks | ☐ | Use reverse proxy or Cloudflare |
-| Session storage externalized (Redis/PostgreSQL) | ☐ | Required for horizontal scaling |
+| SSL/TLS enabled for webhooks | ☐ | Use reverse proxy or Tailscale |
+| Session compaction configured | ☐ | Prevent unbounded memory growth |
+| Tool allow/deny lists configured | ☐ | Principle of least privilege |
 | Audit logging enabled | ☐ | Ship to centralized logging |
 | Content policies defined | ☐ | Enforce compliance at gateway level |
 | Monitoring and alerting configured | ☐ | Health checks, error rates, latency |
 | Backup strategy for configuration and sessions | ☐ | Regular automated backups |
+| Hot reload mode set to `hybrid` | ☐ | Safe default for production |
+| Pairing approval workflow documented | ☐ | Ensure only authorized devices connect |
+| MITRE ATLAS mitigations reviewed | ☐ | Address all identified threat vectors |
 
 ---
 
 ## References
 
-1. OpenClaw Official Documentation — https://docs.openclaw.ai/
-2. OpenClaw GitHub Repository — https://github.com/openclaw/openclaw
-3. OpenClaw Plugin Development Guide — https://docs.openclaw.ai/plugins
-4. Lobster Workflow Documentation — https://docs.openclaw.ai/workflows
+[1]: [OpenClaw Documentation](https://docs.openclaw.ai/)
+[2]: [OpenClaw Gateway & Ops](https://docs.openclaw.ai/gateway)
+[3]: [OpenClaw Agent Loop](https://docs.openclaw.ai/concepts/agent-loop)
