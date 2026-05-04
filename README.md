@@ -1,6 +1,6 @@
 # Specialist Teams
 
-A comprehensive knowledge base of 32 specialist domains for AI agents and engineering teams. Each specialist includes a main guide and an advanced guide with deep technical content, architecture patterns, code examples, and best practices sourced from official documentation.
+A comprehensive knowledge base of 33 specialist domains for AI agents and engineering teams. Each specialist includes a main guide and an advanced guide with deep technical content, architecture patterns, code examples, and best practices sourced from official documentation.
 
 ## Specialists
 
@@ -38,6 +38,7 @@ A comprehensive knowledge base of 32 specialist domains for AI agents and engine
 | 30 | Accessibility Testing | [30-accessibility-testing-specialist.md](./30-accessibility-testing-specialist.md) | [30-accessibility-testing-advanced.md](./30-accessibility-testing-advanced.md) |
 | 31 | Jira Field Schemas | [31-jira-field-schemas-specialist.md](./31-jira-field-schemas-specialist.md) | [31-jira-field-schemas-advanced.md](./31-jira-field-schemas-advanced.md) |
 | 32 | Roles & Permissions | [32-roles-permissions-specialist.md](./32-roles-permissions-specialist.md) | [32-roles-permissions-advanced.md](./32-roles-permissions-advanced.md) |
+| 33 | Dockerfile Mastery | [33-dockerfile-specialist.md](./33-dockerfile-specialist.md) | [33-dockerfile-advanced.md](./33-dockerfile-advanced.md) |
 
 ## AI Agent Usage
 
