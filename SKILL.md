@@ -1,6 +1,6 @@
 # Specialist Teams Knowledge Base
 
-This repository contains the ultimate reference guides for 33 different specialist domains. When an AI agent needs deep expertise, architecture patterns, code examples, or troubleshooting guidance in a specific domain, they should refer to the appropriate files in this repository.
+This repository contains the ultimate reference guides for 34 different specialist domains. When an AI agent needs deep expertise, architecture patterns, code examples, or troubleshooting guidance in a specific domain, they should refer to the appropriate files in this repository.
 
 ## Usage Instructions for AI Agents
 
@@ -46,6 +46,7 @@ This repository contains the ultimate reference guides for 33 different speciali
 | **Jira Field Schemas** | `31-jira-field-schemas-specialist.md` | `31-jira-field-schemas-advanced.md` |
 | **Roles & Permissions** | `32-roles-permissions-specialist.md` | `32-roles-permissions-advanced.md` |
 | **Dockerfile Mastery** | `33-dockerfile-specialist.md` | `33-dockerfile-advanced.md` |
+| **Bot Specialist (OpenClaw/NemoClaw/OpenShell)** | `34-bot-specialist.md` | `34-bot-advanced.md` |
 
 ## File Structure Preference
 
