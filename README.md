@@ -1,8 +1,8 @@
 # Specialist Teams
 
-A comprehensive knowledge base of 34 specialist domains for AI agents and engineering teams. Each specialist includes **7 detailed documentation files** covering core concepts, advanced patterns, CLI references, troubleshooting, security audits, configuration schemas, and deep-dive architecture guides.
+A comprehensive knowledge base of 35 specialist domains for AI agents and engineering teams. Each specialist includes **7 detailed documentation files** covering core concepts, advanced patterns, CLI references, troubleshooting, security audits, configuration schemas, and deep-dive architecture guides.
 
-**Total: 241 files | 472,000+ words | 34 specialist domains**
+**Total: 248 files | 483,000+ words | 35 specialist domains**
 
 ## Repository Structure
 
@@ -56,6 +56,7 @@ Each specialist follows a consistent 7-file structure:
 | 32 | **Roles & Permissions** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
 | 33 | **Dockerfile Mastery** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
 | 34 | **Bot (OpenClaw/NemoClaw/OpenShell)** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
+| 35 | **Spanish Teacher (A1-C2)** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
 
 ## AI Agent Usage
 
