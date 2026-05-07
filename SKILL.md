@@ -1,53 +1,80 @@
 # Specialist Teams Knowledge Base
 
-This repository contains the ultimate reference guides for 34 different specialist domains. When an AI agent needs deep expertise, architecture patterns, code examples, or troubleshooting guidance in a specific domain, they should refer to the appropriate files in this repository.
+This repository contains the ultimate reference guides for 34 different specialist domains. Each specialist now includes a comprehensive multi-file structure with 7 documents covering every aspect of the domain. When an AI agent needs deep expertise, architecture patterns, code examples, troubleshooting guidance, security audits, or configuration references in a specific domain, they should refer to the appropriate files in this repository.
 
 ## Usage Instructions for AI Agents
 
 1. Identify the domain of your current task.
 2. Locate the corresponding specialist files from the directory below.
-3. Read the main file (e.g., `01-openclaw-specialist.md`) for core concepts, architecture, and standard workflows.
-4. Read the advanced file (e.g., `01-openclaw-advanced.md`) for complex scenarios, scaling, security, and edge cases.
+3. Read the **main file** (e.g., `01-openclaw-specialist.md`) for core concepts, architecture, and standard workflows.
+4. Read the **advanced file** (e.g., `01-openclaw-advanced.md`) for complex scenarios, scaling, security, and edge cases.
+5. Read the **cli-reference** file for complete command-line tool documentation.
+6. Read the **troubleshooting** file for error codes, diagnostics, and recovery strategies.
+7. Read the **security-audit** file for security validation checklists and hardening.
+8. Read the **config-schemas** file for all configuration files, fields, and defaults.
+9. Read the **deep-dive** file for advanced architecture, performance tuning, and enterprise patterns.
+
+## File Naming Convention
+
+Each specialist follows this naming pattern:
+- `{ID}-{name}-specialist.md` — Core concepts and standard workflows
+- `{ID}-{name}-advanced.md` — Complex scenarios and scaling
+- `{ID}-{name}-cli-reference.md` — CLI command reference
+- `{ID}-{name}-troubleshooting.md` — Diagnostics and error recovery
+- `{ID}-{name}-security-audit.md` — Security checklist and hardening
+- `{ID}-{name}-config-schemas.md` — Configuration documentation
+- `{ID}-{name}-deep-dive.md` — Advanced architecture and performance
 
 ## Available Specialists
 
-| Domain | Main Guide | Advanced Guide |
-|--------|------------|----------------|
-| **OpenClaw** | `01-openclaw-specialist.md` | `01-openclaw-advanced.md` |
-| **NemoClaw** | `02-nemoclaw-specialist.md` | `02-nemoclaw-advanced.md` |
-| **Prompt Engineering** | `03-prompt-specialist.md` | `03-prompt-advanced.md` |
-| **RAG** | `04-rag-specialist.md` | `04-rag-advanced.md` |
-| **AI Fundamentals** | `05-ai-specialist.md` | `05-ai-advanced.md` |
-| **Claude** | `06-claude-specialist.md` | `06-claude-advanced.md` |
-| **Manus Platform** | `07-manus-specialist.md` | `07-manus-advanced.md` |
-| **Manus Workflows** | `08-manus-specialist-2.md` | `08-manus-advanced-2.md` |
-| **OpenAI** | `09-openai-specialist.md` | `09-openai-advanced.md` |
-| **Databases (PG/Mongo)** | `10-database-specialist.md` | `10-database-advanced.md` |
-| **Messaging (RabbitMQ/DocDB)** | `11-rabbitmq-documentdb-specialist.md` | `11-rabbitmq-documentdb-advanced.md` |
-| **Caching (Valkey/Redis)** | `12-valkey-redis-specialist.md` | `12-valkey-redis-advanced.md` |
-| **Go (Golang)** | `13-go-specialist.md` | `13-go-advanced.md` |
-| **Frontend (React/Next)** | `14-frontend-specialist.md` | `14-frontend-advanced.md` |
-| **DevOps (AWS/K8s)** | `15-devops-specialist.md` | `15-devops-advanced.md` |
-| **Lua** | `16-lua-specialist.md` | `16-lua-advanced.md` |
-| **Bash/Shell** | `17-bash-specialist.md` | `17-bash-advanced.md` |
-| **Ticket System Supreme** | `18-ticket-supreme-specialist.md` | `18-ticket-supreme-advanced.md` |
-| **On-Call Master Supreme** | `19-oncall-master-supreme-specialist.md` | `19-oncall-master-supreme-advanced.md` |
-| **Jira JSM Alerts & On-Call** | `20-jira-jsm-oncall-specialist.md` | `20-jira-jsm-oncall-advanced.md` |
-| **VoIP On-Call Services** | `21-voip-oncall-specialist.md` | `21-voip-oncall-advanced.md` |
-| **Ticket System Reports** | `22-ticket-reports-specialist.md` | `22-ticket-reports-advanced.md` |
-| **Jira Status & Workflows** | `23-jira-status-workflows-specialist.md` | `23-jira-status-workflows-advanced.md` |
-| **SeaweedFS** | `24-seaweedfs-specialist.md` | `24-seaweedfs-advanced.md` |
-| **Speedtest (Ookla)** | `25-speedtest-specialist.md` | `25-speedtest-advanced.md` |
-| **Frontend Menu Design** | `26-frontend-menu-design-specialist.md` | `26-frontend-menu-design-advanced.md` |
-| **Web Tester Supreme** | `27-web-tester-supreme-specialist.md` | `27-web-tester-supreme-advanced.md` |
-| **Playwright E2E** | `28-playwright-specialist.md` | `28-playwright-advanced.md` |
-| **Vitest Unit Testing** | `29-vitest-specialist.md` | `29-vitest-advanced.md` |
-| **Accessibility Testing** | `30-accessibility-testing-specialist.md` | `30-accessibility-testing-advanced.md` |
-| **Jira Field Schemas** | `31-jira-field-schemas-specialist.md` | `31-jira-field-schemas-advanced.md` |
-| **Roles & Permissions** | `32-roles-permissions-specialist.md` | `32-roles-permissions-advanced.md` |
-| **Dockerfile Mastery** | `33-dockerfile-specialist.md` | `33-dockerfile-advanced.md` |
-| **Bot Specialist (OpenClaw/NemoClaw/OpenShell)** | `34-bot-specialist.md` | `34-bot-advanced.md` |
+| # | Domain | Main | Advanced | CLI Ref | Troubleshoot | Security | Config | Deep Dive |
+|---|--------|------|----------|---------|--------------|----------|--------|-----------|
+| 01 | OpenClaw | `01-openclaw-specialist.md` | `01-openclaw-advanced.md` | `01-openclaw-cli-reference.md` | `01-openclaw-troubleshooting.md` | `01-openclaw-security-audit.md` | `01-openclaw-config-schemas.md` | `01-openclaw-deep-dive.md` |
+| 02 | NemoClaw | `02-nemoclaw-specialist.md` | `02-nemoclaw-advanced.md` | `02-nemoclaw-cli-reference.md` | `02-nemoclaw-troubleshooting.md` | `02-nemoclaw-security-audit.md` | `02-nemoclaw-config-schemas.md` | `02-nemoclaw-deep-dive.md` |
+| 03 | Prompt Engineering | `03-prompt-specialist.md` | `03-prompt-advanced.md` | `03-prompt-cli-reference.md` | `03-prompt-troubleshooting.md` | `03-prompt-security-audit.md` | `03-prompt-config-schemas.md` | `03-prompt-deep-dive.md` |
+| 04 | RAG | `04-rag-specialist.md` | `04-rag-advanced.md` | `04-rag-cli-reference.md` | `04-rag-troubleshooting.md` | `04-rag-security-audit.md` | `04-rag-config-schemas.md` | `04-rag-deep-dive.md` |
+| 05 | AI Fundamentals | `05-ai-specialist.md` | `05-ai-advanced.md` | `05-ai-cli-reference.md` | `05-ai-troubleshooting.md` | `05-ai-security-audit.md` | `05-ai-config-schemas.md` | `05-ai-deep-dive.md` |
+| 06 | Claude (Anthropic) | `06-claude-specialist.md` | `06-claude-advanced.md` | `06-claude-cli-reference.md` | `06-claude-troubleshooting.md` | `06-claude-security-audit.md` | `06-claude-config-schemas.md` | `06-claude-deep-dive.md` |
+| 07 | Manus Platform | `07-manus-specialist.md` | `07-manus-advanced.md` | `07-manus-cli-reference.md` | `07-manus-troubleshooting.md` | `07-manus-security-audit.md` | `07-manus-config-schemas.md` | `07-manus-deep-dive.md` |
+| 08 | Manus Workflows | `08-manus-specialist-2.md` | `08-manus-advanced-2.md` | `08-manus-workflows-cli-reference.md` | `08-manus-workflows-troubleshooting.md` | `08-manus-workflows-security-audit.md` | `08-manus-workflows-config-schemas.md` | `08-manus-workflows-deep-dive.md` |
+| 09 | OpenAI | `09-openai-specialist.md` | `09-openai-advanced.md` | `09-openai-cli-reference.md` | `09-openai-troubleshooting.md` | `09-openai-security-audit.md` | `09-openai-config-schemas.md` | `09-openai-deep-dive.md` |
+| 10 | Databases (PG/Mongo) | `10-database-specialist.md` | `10-database-advanced.md` | `10-database-cli-reference.md` | `10-database-troubleshooting.md` | `10-database-security-audit.md` | `10-database-config-schemas.md` | `10-database-deep-dive.md` |
+| 11 | Messaging (RabbitMQ/DocDB) | `11-rabbitmq-documentdb-specialist.md` | `11-rabbitmq-documentdb-advanced.md` | `11-rabbitmq-documentdb-cli-reference.md` | `11-rabbitmq-documentdb-troubleshooting.md` | `11-rabbitmq-documentdb-security-audit.md` | `11-rabbitmq-documentdb-config-schemas.md` | `11-rabbitmq-documentdb-deep-dive.md` |
+| 12 | Caching (Valkey/Redis) | `12-valkey-redis-specialist.md` | `12-valkey-redis-advanced.md` | `12-valkey-redis-cli-reference.md` | `12-valkey-redis-troubleshooting.md` | `12-valkey-redis-security-audit.md` | `12-valkey-redis-config-schemas.md` | `12-valkey-redis-deep-dive.md` |
+| 13 | Go (Golang) | `13-go-specialist.md` | `13-go-advanced.md` | `13-go-cli-reference.md` | `13-go-troubleshooting.md` | `13-go-security-audit.md` | `13-go-config-schemas.md` | `13-go-deep-dive.md` |
+| 14 | Frontend (React/Next) | `14-frontend-specialist.md` | `14-frontend-advanced.md` | `14-frontend-cli-reference.md` | `14-frontend-troubleshooting.md` | `14-frontend-security-audit.md` | `14-frontend-config-schemas.md` | `14-frontend-deep-dive.md` |
+| 15 | DevOps (AWS/K8s/EKS) | `15-devops-specialist.md` | `15-devops-advanced.md` | `15-devops-cli-reference.md` | `15-devops-troubleshooting.md` | `15-devops-security-audit.md` | `15-devops-config-schemas.md` | `15-devops-deep-dive.md` |
+| 16 | Lua | `16-lua-specialist.md` | `16-lua-advanced.md` | `16-lua-cli-reference.md` | `16-lua-troubleshooting.md` | `16-lua-security-audit.md` | `16-lua-config-schemas.md` | `16-lua-deep-dive.md` |
+| 17 | Bash/Shell | `17-bash-specialist.md` | `17-bash-advanced.md` | `17-bash-cli-reference.md` | `17-bash-troubleshooting.md` | `17-bash-security-audit.md` | `17-bash-config-schemas.md` | `17-bash-deep-dive.md` |
+| 18 | Ticket System Supreme | `18-ticket-supreme-specialist.md` | `18-ticket-supreme-advanced.md` | `18-ticket-supreme-cli-reference.md` | `18-ticket-supreme-troubleshooting.md` | `18-ticket-supreme-security-audit.md` | `18-ticket-supreme-config-schemas.md` | `18-ticket-supreme-deep-dive.md` |
+| 19 | On-Call Master Supreme | `19-oncall-master-supreme-specialist.md` | `19-oncall-master-supreme-advanced.md` | `19-oncall-master-supreme-cli-reference.md` | `19-oncall-master-supreme-troubleshooting.md` | `19-oncall-master-supreme-security-audit.md` | `19-oncall-master-supreme-config-schemas.md` | `19-oncall-master-supreme-deep-dive.md` |
+| 20 | Jira JSM Alerts & On-Call | `20-jira-jsm-oncall-specialist.md` | `20-jira-jsm-oncall-advanced.md` | `20-jira-jsm-oncall-cli-reference.md` | `20-jira-jsm-oncall-troubleshooting.md` | `20-jira-jsm-oncall-security-audit.md` | `20-jira-jsm-oncall-config-schemas.md` | `20-jira-jsm-oncall-deep-dive.md` |
+| 21 | VoIP On-Call Services | `21-voip-oncall-specialist.md` | `21-voip-oncall-advanced.md` | `21-voip-oncall-cli-reference.md` | `21-voip-oncall-troubleshooting.md` | `21-voip-oncall-security-audit.md` | `21-voip-oncall-config-schemas.md` | `21-voip-oncall-deep-dive.md` |
+| 22 | Ticket System Reports | `22-ticket-reports-specialist.md` | `22-ticket-reports-advanced.md` | `22-ticket-reports-cli-reference.md` | `22-ticket-reports-troubleshooting.md` | `22-ticket-reports-security-audit.md` | `22-ticket-reports-config-schemas.md` | `22-ticket-reports-deep-dive.md` |
+| 23 | Jira Status & Workflows | `23-jira-status-workflows-specialist.md` | `23-jira-status-workflows-advanced.md` | `23-jira-status-workflows-cli-reference.md` | `23-jira-status-workflows-troubleshooting.md` | `23-jira-status-workflows-security-audit.md` | `23-jira-status-workflows-config-schemas.md` | `23-jira-status-workflows-deep-dive.md` |
+| 24 | SeaweedFS | `24-seaweedfs-specialist.md` | `24-seaweedfs-advanced.md` | `24-seaweedfs-cli-reference.md` | `24-seaweedfs-troubleshooting.md` | `24-seaweedfs-security-audit.md` | `24-seaweedfs-config-schemas.md` | `24-seaweedfs-deep-dive.md` |
+| 25 | Speedtest (Ookla) | `25-speedtest-specialist.md` | `25-speedtest-advanced.md` | `25-speedtest-cli-reference.md` | `25-speedtest-troubleshooting.md` | `25-speedtest-security-audit.md` | `25-speedtest-config-schemas.md` | `25-speedtest-deep-dive.md` |
+| 26 | Frontend Menu Design | `26-frontend-menu-design-specialist.md` | `26-frontend-menu-design-advanced.md` | `26-frontend-menu-design-cli-reference.md` | `26-frontend-menu-design-troubleshooting.md` | `26-frontend-menu-design-security-audit.md` | `26-frontend-menu-design-config-schemas.md` | `26-frontend-menu-design-deep-dive.md` |
+| 27 | Web Tester Supreme | `27-web-tester-supreme-specialist.md` | `27-web-tester-supreme-advanced.md` | `27-web-tester-supreme-cli-reference.md` | `27-web-tester-supreme-troubleshooting.md` | `27-web-tester-supreme-security-audit.md` | `27-web-tester-supreme-config-schemas.md` | `27-web-tester-supreme-deep-dive.md` |
+| 28 | Playwright E2E | `28-playwright-specialist.md` | `28-playwright-advanced.md` | `28-playwright-cli-reference.md` | `28-playwright-troubleshooting.md` | `28-playwright-security-audit.md` | `28-playwright-config-schemas.md` | `28-playwright-deep-dive.md` |
+| 29 | Vitest Unit Testing | `29-vitest-specialist.md` | `29-vitest-advanced.md` | `29-vitest-cli-reference.md` | `29-vitest-troubleshooting.md` | `29-vitest-security-audit.md` | `29-vitest-config-schemas.md` | `29-vitest-deep-dive.md` |
+| 30 | Accessibility Testing | `30-accessibility-testing-specialist.md` | `30-accessibility-testing-advanced.md` | `30-accessibility-testing-cli-reference.md` | `30-accessibility-testing-troubleshooting.md` | `30-accessibility-testing-security-audit.md` | `30-accessibility-testing-config-schemas.md` | `30-accessibility-testing-deep-dive.md` |
+| 31 | Jira Field Schemas | `31-jira-field-schemas-specialist.md` | `31-jira-field-schemas-advanced.md` | `31-jira-field-schemas-cli-reference.md` | `31-jira-field-schemas-troubleshooting.md` | `31-jira-field-schemas-security-audit.md` | `31-jira-field-schemas-config-schemas.md` | `31-jira-field-schemas-deep-dive.md` |
+| 32 | Roles & Permissions | `32-roles-permissions-specialist.md` | `32-roles-permissions-advanced.md` | `32-roles-permissions-cli-reference.md` | `32-roles-permissions-troubleshooting.md` | `32-roles-permissions-security-audit.md` | `32-roles-permissions-config-schemas.md` | `32-roles-permissions-deep-dive.md` |
+| 33 | Dockerfile Mastery | `33-dockerfile-specialist.md` | `33-dockerfile-advanced.md` | `33-dockerfile-cli-reference.md` | `33-dockerfile-troubleshooting.md` | `33-dockerfile-security-audit.md` | `33-dockerfile-config-schemas.md` | `33-dockerfile-deep-dive.md` |
+| 34 | Bot (OpenClaw/NemoClaw/OpenShell) | `34-bot-specialist.md` | `34-bot-advanced.md` | `34-bot-cli-reference.md` | `34-bot-troubleshooting.md` | `34-bot-security-audit.md` | `34-bot-config-schemas.md` | `34-bot-deep-dive.md` |
 
-## File Structure Preference
+## File Structure
 
-All markdown files are structured with one main file per skill and one complementary advanced file. The main file contains instructions to refer to the advanced file for additional details when necessary.
+All markdown files are structured with one main file per skill and several complementary child files. The main file contains instructions to refer to child files for additional details when necessary.
+
+## Quick Reference by Task Type
+
+| Task Type | Files to Read |
+|-----------|---------------|
+| **Setting up a new system** | `*-specialist.md` + `*-config-schemas.md` |
+| **Debugging an issue** | `*-troubleshooting.md` + `*-cli-reference.md` |
+| **Security review** | `*-security-audit.md` |
+| **Performance optimization** | `*-deep-dive.md` + `*-advanced.md` |
+| **Learning the domain** | `*-specialist.md` + `*-advanced.md` |
+| **Day-to-day operations** | `*-cli-reference.md` + `*-troubleshooting.md` |
