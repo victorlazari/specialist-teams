@@ -1,6 +1,6 @@
 # Specialist Teams Knowledge Base
 
-This repository contains the ultimate reference guides for 35 different specialist domains. Each specialist now includes a comprehensive multi-file structure with 7 documents covering every aspect of the domain. When an AI agent needs deep expertise, architecture patterns, code examples, troubleshooting guidance, security audits, or configuration references in a specific domain, they should refer to the appropriate files in this repository.
+This repository contains the ultimate reference guides for 36 different specialist domains. Each specialist now includes a comprehensive multi-file structure with 7 documents covering every aspect of the domain. When an AI agent needs deep expertise, architecture patterns, code examples, troubleshooting guidance, security audits, or configuration references in a specific domain, they should refer to the appropriate files in this repository.
 
 ## Usage Instructions for AI Agents
 
@@ -64,6 +64,7 @@ Each specialist follows this naming pattern:
 | 33 | Dockerfile Mastery | `33-dockerfile-specialist.md` | `33-dockerfile-advanced.md` | `33-dockerfile-cli-reference.md` | `33-dockerfile-troubleshooting.md` | `33-dockerfile-security-audit.md` | `33-dockerfile-config-schemas.md` | `33-dockerfile-deep-dive.md` |
 | 34 | Bot (OpenClaw/NemoClaw/OpenShell) | `34-bot-specialist.md` | `34-bot-advanced.md` | `34-bot-cli-reference.md` | `34-bot-troubleshooting.md` | `34-bot-security-audit.md` | `34-bot-config-schemas.md` | `34-bot-deep-dive.md` |
 | 35 | Spanish Teacher | `35-spanish-teacher-specialist.md` | `35-spanish-teacher-advanced.md` | `35-spanish-teacher-cli-reference.md` | `35-spanish-teacher-troubleshooting.md` | `35-spanish-teacher-security-audit.md` | `35-spanish-teacher-config-schemas.md` | `35-spanish-teacher-deep-dive.md` |
+| 36 | French Teacher | `36-french-teacher-specialist.md` | `36-french-teacher-advanced.md` | `36-french-teacher-cli-reference.md` | `36-french-teacher-troubleshooting.md` | `36-french-teacher-security-audit.md` | `36-french-teacher-config-schemas.md` | `36-french-teacher-deep-dive.md` |
 
 ## File Structure
 
