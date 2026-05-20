@@ -1,8 +1,8 @@
 # Specialist Teams
 
-A comprehensive knowledge base of 36 specialist domains for AI agents and engineering teams. Each specialist includes **7 detailed documentation files** covering core concepts, advanced patterns, CLI references, troubleshooting, security audits, configuration schemas, and deep-dive architecture guides.
+A comprehensive knowledge base of 45 specialist domains for AI agents and engineering teams. Each specialist includes **7 detailed documentation files** covering core concepts, advanced patterns, CLI references, troubleshooting, security audits, configuration schemas, and deep-dive architecture guides.
 
-**Total: 255 files | 516,000+ words | 36 specialist domains**
+**Total: 315 files | 696,000+ words | 45 specialist domains**
 
 ## Repository Structure
 
@@ -58,6 +58,15 @@ Each specialist follows a consistent 7-file structure:
 | 34 | **Bot (OpenClaw/NemoClaw/OpenShell)** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
 | 35 | **Spanish Teacher (A1-C2)** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
 | 36 | **French Teacher (A1-C2)** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
+| 37 | **Kubernetes & EKS** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
+| 38 | **PostgreSQL 15+** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
+| 39 | **RabbitMQ** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
+| 40 | **Redis & Valkey** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
+| 41 | **MongoDB** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
+| 42 | **Go & Lua (Migrations)** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
+| 43 | **Lerian Helm Deployments** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
+| 44 | **SQL & Database Partitioning** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
+| 45 | **Tech Support Operations** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
 
 ## AI Agent Usage
 

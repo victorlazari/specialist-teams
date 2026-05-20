@@ -1,6 +1,6 @@
 # Specialist Teams Knowledge Base
 
-This repository contains the ultimate reference guides for 36 different specialist domains. Each specialist now includes a comprehensive multi-file structure with 7 documents covering every aspect of the domain. When an AI agent needs deep expertise, architecture patterns, code examples, troubleshooting guidance, security audits, or configuration references in a specific domain, they should refer to the appropriate files in this repository.
+This repository contains the ultimate reference guides for 45 different specialist domains. Each specialist now includes a comprehensive multi-file structure with 7 documents covering every aspect of the domain. When an AI agent needs deep expertise, architecture patterns, code examples, troubleshooting guidance, security audits, or configuration references in a specific domain, they should refer to the appropriate files in this repository.
 
 ## Usage Instructions for AI Agents
 
@@ -65,6 +65,15 @@ Each specialist follows this naming pattern:
 | 34 | Bot (OpenClaw/NemoClaw/OpenShell) | `34-bot-specialist.md` | `34-bot-advanced.md` | `34-bot-cli-reference.md` | `34-bot-troubleshooting.md` | `34-bot-security-audit.md` | `34-bot-config-schemas.md` | `34-bot-deep-dive.md` |
 | 35 | Spanish Teacher | `35-spanish-teacher-specialist.md` | `35-spanish-teacher-advanced.md` | `35-spanish-teacher-cli-reference.md` | `35-spanish-teacher-troubleshooting.md` | `35-spanish-teacher-security-audit.md` | `35-spanish-teacher-config-schemas.md` | `35-spanish-teacher-deep-dive.md` |
 | 36 | French Teacher | `36-french-teacher-specialist.md` | `36-french-teacher-advanced.md` | `36-french-teacher-cli-reference.md` | `36-french-teacher-troubleshooting.md` | `36-french-teacher-security-audit.md` | `36-french-teacher-config-schemas.md` | `36-french-teacher-deep-dive.md` |
+| 37 | Kubernetes & EKS | `37-k8s-eks-specialist.md` | `37-k8s-eks-advanced.md` | `37-k8s-eks-cli-reference.md` | `37-k8s-eks-troubleshooting.md` | `37-k8s-eks-security-audit.md` | `37-k8s-eks-config-schemas.md` | `37-k8s-eks-deep-dive.md` |
+| 38 | PostgreSQL 15+ | `38-postgres-15-specialist.md` | `38-postgres-15-advanced.md` | `38-postgres-15-cli-reference.md` | `38-postgres-15-troubleshooting.md` | `38-postgres-15-security-audit.md` | `38-postgres-15-config-schemas.md` | `38-postgres-15-deep-dive.md` |
+| 39 | RabbitMQ | `39-rabbitmq-specialist.md` | `39-rabbitmq-advanced.md` | `39-rabbitmq-cli-reference.md` | `39-rabbitmq-troubleshooting.md` | `39-rabbitmq-security-audit.md` | `39-rabbitmq-config-schemas.md` | `39-rabbitmq-deep-dive.md` |
+| 40 | Redis & Valkey | `40-redis-valkey-specialist.md` | `40-redis-valkey-advanced.md` | `40-redis-valkey-cli-reference.md` | `40-redis-valkey-troubleshooting.md` | `40-redis-valkey-security-audit.md` | `40-redis-valkey-config-schemas.md` | `40-redis-valkey-deep-dive.md` |
+| 41 | MongoDB | `41-mongodb-specialist.md` | `41-mongodb-advanced.md` | `41-mongodb-cli-reference.md` | `41-mongodb-troubleshooting.md` | `41-mongodb-security-audit.md` | `41-mongodb-config-schemas.md` | `41-mongodb-deep-dive.md` |
+| 42 | Go & Lua | `42-go-lua-specialist.md` | `42-go-lua-advanced.md` | `42-go-lua-cli-reference.md` | `42-go-lua-troubleshooting.md` | `42-go-lua-security-audit.md` | `42-go-lua-config-schemas.md` | `42-go-lua-deep-dive.md` |
+| 43 | Lerian Helm Deployments | `43-lerian-helm-specialist.md` | `43-lerian-helm-advanced.md` | `43-lerian-helm-cli-reference.md` | `43-lerian-helm-troubleshooting.md` | `43-lerian-helm-security-audit.md` | `43-lerian-helm-config-schemas.md` | `43-lerian-helm-deep-dive.md` |
+| 44 | SQL & Database Partitioning | `44-sql-partitioning-specialist.md` | `44-sql-partitioning-advanced.md` | `44-sql-partitioning-cli-reference.md` | `44-sql-partitioning-troubleshooting.md` | `44-sql-partitioning-security-audit.md` | `44-sql-partitioning-config-schemas.md` | `44-sql-partitioning-deep-dive.md` |
+| 45 | Tech Support Operations | `45-tech-support-ops-specialist.md` | `45-tech-support-ops-advanced.md` | `45-tech-support-ops-cli-reference.md` | `45-tech-support-ops-troubleshooting.md` | `45-tech-support-ops-security-audit.md` | `45-tech-support-ops-config-schemas.md` | `45-tech-support-ops-deep-dive.md` |
 
 ## File Structure
 
