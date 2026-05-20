@@ -1,8 +1,8 @@
 # Specialist Teams
 
-A comprehensive knowledge base of 45 specialist domains for AI agents and engineering teams. Each specialist includes **7 detailed documentation files** covering core concepts, advanced patterns, CLI references, troubleshooting, security audits, configuration schemas, and deep-dive architecture guides.
+A comprehensive knowledge base of 46 specialist domains for AI agents and engineering teams. Each specialist includes **7 detailed documentation files** covering core concepts, advanced patterns, CLI references, troubleshooting, security audits, configuration schemas, and deep-dive architecture guides.
 
-**Total: 315 files | 696,000+ words | 45 specialist domains**
+**Total: 322 files | 718,000+ words | 46 specialist domains**
 
 ## Repository Structure
 
@@ -67,6 +67,7 @@ Each specialist follows a consistent 7-file structure:
 | 43 | **Lerian Helm Deployments** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
 | 44 | **SQL & Database Partitioning** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
 | 45 | **Tech Support Operations** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
+| 46 | **Wiki.js** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
 
 ## AI Agent Usage
 
