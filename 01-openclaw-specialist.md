@@ -1,351 +1,291 @@
-# OpenClaw Specialist Guide
+# OpenClaw (ZeroClaw) Architecture & Operations Specialist Guide
 
-> **Role:** OpenClaw Platform Specialist
-> **Domain:** Self-hosted AI gateway, multi-channel messaging, agent runtime, tool orchestration
-> **Official Documentation:** [docs.openclaw.ai](https://docs.openclaw.ai/)
-> **License:** MIT
+## 1. Introduction to OpenClaw (ZeroClaw)
 
----
+OpenClaw, frequently referred to in advanced deployment circles as ZeroClaw, represents a paradigm shift in open-source AI agent runtimes. Designed from the ground up to be a robust, highly scalable, and infinitely extensible framework, OpenClaw serves as the central nervous system for autonomous AI operations. It bridges the gap between raw Large Language Model (LLM) capabilities and real-world, production-grade applications. 
 
-## 1. Executive Summary and Core Philosophy
+At its core, OpenClaw is not just a wrapper around an API; it is a comprehensive runtime environment that orchestrates complex workflows, manages stateful interactions, and interfaces seamlessly with a multitude of external systems. With native support for over 30 distinct LLM providers—ranging from industry giants like OpenAI, Anthropic, and Google, to specialized open-weight models hosted on local infrastructure—OpenClaw ensures that organizations are never locked into a single vendor ecosystem. This flexibility is paramount in an era where model capabilities and pricing structures evolve rapidly.
 
-OpenClaw is an open-source, self-hosted gateway that connects chat applications to AI coding agents. At its core, OpenClaw operates as a single long-lived Gateway process that bridges messaging platforms (Discord, Slack, Telegram, WhatsApp, and many others) with AI assistants, enabling always-on, multi-channel AI interactions that run entirely on the operator's own hardware. The project is MIT-licensed, community-driven, and designed around the principle that users should retain full control over their data, their infrastructure, and their AI interactions [1].
+Furthermore, OpenClaw distinguishes itself through its unparalleled connectivity. It boasts out-of-the-box integration with 14 different messaging channels. This means an OpenClaw agent can simultaneously converse with users on WhatsApp, Signal, Telegram, Slack, Discord, and custom web interfaces, maintaining context and persona across all mediums. This multi-channel capability transforms the agent from a siloed chatbot into a ubiquitous digital presence.
 
-The fundamental philosophy of OpenClaw centers on three pillars. First, **sovereignty**: the Gateway runs on your hardware under your rules, with no external telemetry or cloud dependency required. Second, **universality**: a single Gateway instance can serve dozens of messaging channels simultaneously, routing conversations to the appropriate agent with isolated sessions. Third, **extensibility**: the platform exposes a rich plugin architecture that allows developers to add new channels, tools, model providers, and skills without modifying the core codebase [1].
+The architecture of OpenClaw is heavily inspired by the ara.so repository, emphasizing modularity, fault tolerance, and observability. Every component, from the gateway that handles incoming webhooks to the background workers executing long-running tasks, is designed to operate independently yet cohesively. This guide serves as the definitive manual for OpenClaw specialists, covering every aspect of its architecture, configuration, memory management, and troubleshooting protocols. It is written for the operators, the tech support engineers, and the system architects who are tasked with keeping OpenClaw deployments running smoothly in the most demanding production environments.
 
-OpenClaw requires Node.js 24 (recommended) or Node.js 22 LTS (22.14+) and an API key from a chosen model provider. The entire setup process can be completed in approximately five minutes using the guided onboarding CLI. The default configuration ships with a bundled Pi binary running in RPC mode with per-sender sessions, and the configuration file resides at `~/.openclaw/openclaw.json` [1].
+## 2. Core Architecture and Components
 
-```bash
-npm install -g openclaw@latest
-openclaw onboard --install-daemon
-openclaw dashboard
+The OpenClaw architecture is a masterclass in distributed system design, tailored specifically for the unique demands of AI agent operations. It is composed of several critical layers, each responsible for a distinct facet of the agent's lifecycle.
+
+### 2.1 The Gateway Layer
+The Gateway is the ingress point for all external communications. Whether it's an incoming message from a WhatsApp user, a webhook from a payment processor, or an API call from an internal dashboard, it hits the Gateway first. The Gateway is responsible for:
+- **Authentication and Authorization:** Verifying the identity of the sender and ensuring they have the necessary permissions to interact with the agent.
+- **Payload Normalization:** Converting the myriad of different incoming data formats (e.g., a Telegram JSON payload vs. a Signal RPC call) into a standardized internal representation.
+- **Rate Limiting and Throttling:** Protecting the core system from abuse or sudden spikes in traffic.
+- **Routing:** Directing the normalized payload to the appropriate internal service or agent instance based on the routing rules defined in the configuration.
+
+### 2.2 The Execution Engine
+Once a payload passes through the Gateway, it enters the Execution Engine. This is where the actual "thinking" happens. The Execution Engine manages the lifecycle of an interaction:
+- **Context Assembly:** Gathering all relevant information needed for the LLM to generate a response. This includes retrieving the user's profile, fetching recent conversation history from the memory system, and loading the agent's persona definitions.
+- **Prompt Construction:** Dynamically building the prompt that will be sent to the LLM. This involves injecting the assembled context, applying formatting rules, and appending any necessary system instructions.
+- **LLM Invocation:** Sending the prompt to the configured LLM provider and handling the response. This includes managing retries, handling timeouts, and parsing the output (e.g., extracting JSON from a markdown block).
+- **Action Execution:** If the LLM determines that an action needs to be taken (e.g., calling an external API, querying a database), the Execution Engine orchestrates this process, often utilizing the Extensions and Skills ecosystem.
+
+### 2.3 The State Management Layer
+AI agents are inherently stateful. They need to remember past interactions, track ongoing tasks, and maintain a consistent persona. The State Management Layer handles this complexity:
+- **Session Tracking:** Maintaining the state of active conversations, ensuring that messages are processed in the correct order and that context is preserved across multiple turns.
+- **Memory Persistence:** Storing long-term knowledge and episodic memories in a way that can be efficiently retrieved later. This relies heavily on the 3-Layer Memory System (discussed in detail later).
+- **Workspace Synchronization:** Ensuring that the agent's internal state is synchronized with the physical files in its workspace, allowing for manual intervention and auditing.
+
+### 2.4 The Background Worker Pool
+Not all tasks can or should be executed synchronously. Long-running operations, such as generating a complex report, scraping a website, or orchestrating a multi-agent workflow, are offloaded to the Background Worker Pool. These workers operate independently of the main Execution Engine, pulling tasks from a queue and reporting back when finished. This asynchronous architecture ensures that the agent remains responsive to user input even when performing heavy lifting in the background.
+
+## 3. Configuration: The openclaw.json File
+
+The heart of any OpenClaw deployment is the `openclaw.json` file. This single configuration file dictates the behavior, connectivity, and capabilities of the entire runtime. It is the control panel from which operators manage their agents. A misconfiguration here can lead to catastrophic failures, making a deep understanding of its structure essential.
+
+### 3.1 Structure and Schema
+The `openclaw.json` file is divided into several key sections:
+
+- **`instance`**: Defines global settings for the OpenClaw runtime, such as the instance ID, logging levels, and environment variables.
+- **`providers`**: Configures the connections to the various LLM providers. This includes API keys, base URLs, default models, and fallback strategies.
+- **`channels`**: Defines the messaging platforms the agent will connect to. Each channel requires specific configuration parameters (e.g., phone numbers, bot tokens, webhook URLs).
+- **`memory`**: Configures the memory system, including the path to the SQLite database, the embedding model to use, and the retention policies for session data.
+- **`extensions`**: Lists the active extensions and their respective configurations.
+- **`orchestration`**: Defines the rules for multi-agent interactions, including worker assignments and communication protocols.
+
+### 3.2 Example Configuration Snippet
+
+```json
+{
+  "instance": {
+    "id": "prod-cluster-alpha",
+    "log_level": "debug",
+    "workspace_dir": "/var/lib/openclaw/workspace"
+  },
+  "providers": {
+    "primary": {
+      "type": "openai",
+      "api_key": "env:OPENAI_API_KEY",
+      "model": "gpt-4-turbo",
+      "timeout_ms": 30000
+    },
+    "fallback": {
+      "type": "anthropic",
+      "api_key": "env:ANTHROPIC_API_KEY",
+      "model": "claude-3-opus-20240229"
+    }
+  },
+  "channels": {
+    "whatsapp_support": {
+      "type": "baileys",
+      "session_path": "/var/lib/openclaw/sessions/wa_support",
+      "auto_reconnect": true
+    },
+    "telegram_alerts": {
+      "type": "polling",
+      "bot_token": "env:TELEGRAM_BOT_TOKEN",
+      "poll_interval_ms": 1000
+    }
+  }
+}
 ```
 
----
-
-## 2. Architecture and Gateway Runbook
-
-### 2.1 Gateway Architecture
-
-The OpenClaw architecture revolves around a single long-lived Gateway process that owns all messaging surfaces and serves as the central hub for all communication. The Gateway binds to a single multiplexed port (default `127.0.0.1:18789`) that simultaneously handles WebSocket RPC connections, HTTP API endpoints, the Control UI dashboard, and webhook callbacks. This design eliminates the need for multiple processes or complex service meshes — one process handles everything [2].
-
-The architecture comprises four primary component types, each playing a distinct role in the system:
-
-| Component | Connection Type | Role |
-|-----------|----------------|------|
-| **Gateway (daemon)** | Long-lived process | Maintains provider connections, exposes typed WebSocket API, validates JSON Schema, emits events (agent, chat, presence, health, heartbeat, cron) |
-| **Clients** (macOS app, CLI, web admin) | One WebSocket connection per client | Send requests (health, status, send, agent, system-presence), subscribe to events |
-| **Nodes** (macOS, iOS, Android, headless) | WebSocket with `role: node` | Device identity, expose commands (canvas.*, camera.*, screen.record, location.get) |
-| **WebChat** | Static UI using Gateway WebSocket API | Browser-based chat interface |
-
-A critical architectural constraint is that only **one Gateway per host** should run, as it is the sole process that opens and maintains channel sessions (such as the WhatsApp session via Baileys). The Canvas host is served at `/__openclaw__/canvas/` and the A2UI at `/__openclaw__/a2ui/` [2].
-
-### 2.2 Wire Protocol
-
-All communication between the Gateway and its clients uses WebSocket with text frames containing JSON payloads. The protocol follows a strict handshake sequence where the first frame must be a "connect" message. After connection establishment, the protocol supports two message patterns [2]:
-
-**Request-Response Pattern:** Clients send requests in the format `{type:"req", id, method, params}` and receive responses as `{type:"res", id, ok, payload|error}`. Idempotency keys are required for all side-effecting methods such as `send` and `agent` to prevent duplicate operations.
-
-**Event Subscription Pattern:** The Gateway pushes events to subscribed clients in the format `{type:"event", event, payload, seq?, stateVersion?}`. Events cover agent lifecycle, chat messages, presence updates, health checks, heartbeats, and cron triggers.
-
-Authentication is enforced by default and supports multiple mechanisms: shared-secret token or password, Tailscale Serve for zero-config remote access, and trusted-proxy headers for reverse proxy deployments [2].
-
-### 2.3 Pairing and Local Trust
-
-All WebSocket clients must include a device identity on connect. New device IDs require explicit pairing approval from the operator, ensuring that only authorized devices can interact with the Gateway. Direct local loopback connections can be configured for auto-approval. The signature payload (version 3) binds the platform and device family, and the Gateway pins paired metadata on reconnect to prevent identity spoofing [2].
-
-### 2.4 Hot Reload Configuration
-
-The Gateway supports four hot reload modes that control how configuration changes are applied at runtime:
-
-| Mode | Behavior |
-|------|----------|
-| `off` | No configuration reload; requires manual restart |
-| `hot` | Apply only hot-safe changes without restart |
-| `restart` | Full restart on any reload-required change |
-| `hybrid` (default) | Hot-apply when safe, restart when required |
-
-### 2.5 Operator Commands
-
-The Gateway provides a comprehensive set of CLI commands for operational management:
-
-```bash
-openclaw gateway status              # Basic status check
-openclaw gateway status --deep       # Deep health check
-openclaw gateway status --json       # Machine-readable output
-openclaw gateway install             # Install as system daemon
-openclaw gateway restart             # Restart the gateway
-openclaw gateway stop                # Stop the gateway
-openclaw secrets reload              # Reload secrets without restart
-openclaw logs --follow               # Stream live logs
-openclaw doctor                      # Diagnose common issues
-```
-
-### 2.6 OpenAI-Compatible API Endpoints
-
-The Gateway exposes OpenAI-compatible HTTP endpoints, making it possible to use OpenClaw as a drop-in replacement for OpenAI API calls in existing applications:
-
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/v1/models` | GET | List available models |
-| `/v1/models/{id}` | GET | Get specific model details |
-| `/v1/embeddings` | POST | Generate embeddings |
-| `/v1/chat/completions` | POST | Chat completions |
-| `/v1/responses` | POST | Response generation |
-
-The models endpoint returns `openclaw`, `openclaw/default`, and `openclaw/<agentId>` as available model identifiers, enabling agent-first routing [2].
-
----
-
-## 3. The Agent Loop and Runtime Model
-
-### 3.1 Agent Loop Definition
-
-The agent loop is the fundamental execution unit in OpenClaw. It represents the complete run cycle: intake of a user message, context assembly from session history and workspace files, model inference via the configured provider, tool execution if the model requests it, streaming of replies back to the user, and persistence of the conversation state. Each agent loop is a single, serialized run per session that emits lifecycle and stream events throughout its execution [3].
-
-### 3.2 Execution Flow
-
-The agent loop follows a precise sequence of operations:
-
-1. The `agent` RPC call validates parameters, resolves the target session, persists metadata, and returns `{runId, acceptedAt}` immediately to the caller.
-2. The `agentCommand` function resolves the model configuration, loads applicable skills, and invokes `runEmbeddedPiAgent`.
-3. The `runEmbeddedPiAgent` function serializes execution via per-session and global queues, resolves model and authentication, subscribes to Pi events, and enforces the configured timeout.
-4. The `subscribeEmbeddedPiSession` function bridges internal events to the WebSocket protocol: tool events become "tool" messages, assistant deltas become "assistant" messages, and lifecycle transitions become "lifecycle" messages.
-5. The `agent.wait` method allows clients to wait for the lifecycle end or error event for a specific `runId`.
-
-### 3.3 Queueing and Concurrency
-
-OpenClaw implements a sophisticated concurrency model to prevent race conditions during agent execution. Runs are serialized per session key (the "session lane") with an optional global lane that can further limit concurrency across all sessions. This prevents tool and session races that could corrupt state. The queue supports three modes: `collect` (batch incoming messages), `steer` (redirect to active run), and `followup` (queue as next run). A session write lock provides process-aware, file-based, non-reentrant locking by default [3].
-
-### 3.4 Timeouts
-
-| Timeout | Default Value | Purpose |
-|---------|---------------|---------|
-| `agent.wait` | 30 seconds | Maximum wait for RPC response |
-| Agent runtime | 172,800 seconds (48 hours) | Maximum total agent run duration |
-| Model idle | 120 seconds | Capped for non-configured providers |
-
-### 3.5 Plugin Hooks
-
-The agent loop exposes a comprehensive set of plugin hooks that allow developers to intercept and modify behavior at every stage of execution:
-
-| Hook | Phase | Purpose |
-|------|-------|---------|
-| `before_model_resolve` | Pre-session | Override provider or model selection |
-| `before_prompt_build` | After session load | Inject context or system prompt modifications |
-| `before_agent_start` | Legacy | Backward compatibility |
-| `before_agent_reply` | After inline actions | Claim turn or generate synthetic reply |
-| `agent_end` | After completion | Inspect final messages |
-| `before_compaction` / `after_compaction` | Compaction | Observe or annotate compaction |
-| `before_tool_call` / `after_tool_call` | Tool lifecycle | Intercept parameters or results |
-| `before_install` | Install | Block skill or plugin installations |
-| `tool_result_persist` | Post-tool | Transform results before persistence |
-| `message_received` / `message_sending` / `message_sent` | Message pipeline | Inbound and outbound hooks |
-| `session_start` / `session_end` | Session lifecycle | Session boundary events |
-| `gateway_start` / `gateway_stop` | Gateway lifecycle | Gateway lifecycle events |
-
----
-
-## 4. Channels and Integration Patterns
-
-### 4.1 Channel Taxonomy
-
-OpenClaw supports an extensive array of messaging channels organized into four categories. This breadth of channel support is one of OpenClaw's most distinctive features, enabling a single Gateway instance to serve users across virtually any messaging platform [1] [4].
-
-**Built-in Channels** are natively integrated into the Gateway core and require no additional plugins:
-
-| Channel | Protocol/API | Key Notes |
-|---------|-------------|-----------|
-| Discord | Bot API + Gateway | Servers, channels, DMs |
-| Google Chat | HTTP webhook | Google Chat API app |
-| iMessage (legacy) | imsg CLI | Deprecated; use BlueBubbles |
-| IRC | IRC protocol | Classic channels + DMs with pairing/allowlist |
-| Signal | signal-cli | Privacy-focused messaging |
-| Slack | Bolt SDK | Workspace apps |
-| Telegram | Bot API (grammY) | Groups supported, fastest setup |
-| WebChat | WebSocket | Gateway WebChat UI |
-| WhatsApp | Baileys | QR pairing, most popular channel |
-
-**Bundled Plugin Channels** ship with OpenClaw but run as plugins:
-
-| Channel | Protocol/API | Key Notes |
-|---------|-------------|-----------|
-| BlueBubbles | REST API | Recommended for iMessage; edit, unsend, effects, reactions, group management |
-| Feishu | WebSocket | Feishu/Lark bot |
-| LINE | LINE Messaging API | Bot integration |
-| Matrix | Matrix protocol | Full protocol support |
-| Mattermost | Bot API + WebSocket | Channels, groups, DMs |
-| Microsoft Teams | Bot Framework | Enterprise support |
-| Nextcloud Talk | Nextcloud Talk API | Self-hosted chat |
-| Nostr | NIP-04 | Decentralized DMs |
-| QQ Bot | QQ Bot API | Private chat, group chat, rich media |
-| Synology Chat | Webhooks | Outgoing + incoming webhooks |
-| Tlon | Urbit-based | Messenger |
-| Twitch | IRC connection | Chat integration |
-| Zalo | Zalo Bot API | Vietnam's popular messenger |
-| Zalo Personal | QR login | Personal account access |
-
-**Optional Separate Plugins** require separate installation:
-
-| Channel | Protocol | Notes |
-|---------|----------|-------|
-| Voice Call | Plivo/Twilio | Telephony integration |
-| WeChat | Tencent iLink Bot | QR login, private chats only |
-
-### 4.2 Channel Delivery Patterns
-
-Each channel has specific delivery behaviors that the specialist must understand. Telegram converts markdown image syntax to media replies on outbound messages. Slack routes multi-person DMs as group chats. WhatsApp uses install-on-demand architecture where the runtime is loaded only when the channel is active, conserving resources when WhatsApp is not in use [4].
-
-### 4.3 Group Chat and DM Safety
-
-Group chat activation is mention-based, meaning the agent only responds when explicitly mentioned (e.g., `@agent`). Direct message safety is enforced through allowlists and pairing mechanisms, preventing unauthorized users from interacting with the agent. Sessions in direct chats collapse into a shared main session, while group chat sessions are isolated per group [4].
-
----
-
-## 5. Tools and Plugin Ecosystem
-
-### 5.1 Three-Layer Architecture
-
-OpenClaw's extensibility is built on three distinct layers that work together to provide a comprehensive tool ecosystem [5]:
-
-**Tools** are typed functions that the agent can call during execution. Each tool has a defined schema, input parameters, and output format. Tools handle concrete actions like executing shell commands, browsing the web, or sending messages.
-
-**Skills** are markdown files (named `SKILL.md`) that are injected into the system prompt to provide the agent with domain-specific guidance. Skills do not execute code but instead shape the agent's behavior through natural language instructions.
-
-**Plugins** are packages that can register any combination of channels, model providers, tools, skills, and speech capabilities. Plugins are the primary extension mechanism for adding new functionality to OpenClaw.
-
-### 5.2 Built-in Tools Reference
-
-| Tool | Purpose |
-|------|---------|
-| `exec` / `process` | Shell commands, background processes |
-| `code_execution` | Sandboxed remote Python analysis |
-| `browser` | Chromium browser control (navigate, click, screenshot) |
-| `web_search` / `x_search` / `web_fetch` | Web search, X posts search, page fetch |
-| `read` / `write` / `edit` | File I/O in workspace |
-| `apply_patch` | Multi-hunk file patches |
-| `message` | Send messages across all channels |
-| `canvas` | Drive node Canvas (present, eval, snapshot) |
-| `nodes` | Discover and target paired devices |
-| `cron` / `gateway` | Scheduled jobs; inspect/patch/restart gateway |
-| `image` / `image_generate` | Analyze or generate images |
-| `music_generate` | Generate music tracks |
-| `video_generate` | Generate videos |
-| `tts` | Text-to-speech conversion |
-| `sessions_*` / `subagents` / `agents_list` | Session management, sub-agent orchestration |
-| `session_status` | Lightweight status readback and session model override |
-
-### 5.3 Tool Profiles and Groups
-
-Tool profiles control which tools are available to the agent in different contexts:
-
-| Profile | Tools Included |
-|---------|---------------|
-| `full` | No restriction — all tools available |
-| `coding` | group:fs, group:runtime, group:web, group:sessions, group:memory, cron, image, image_generate, music_generate, video_generate |
-| `messaging` | group:messaging, sessions_list, sessions_history, sessions_send, session_status |
-| `minimal` | session_status only |
-
-Tool groups provide logical groupings for access control:
-
-| Group | Tools |
-|-------|-------|
-| `group:runtime` | exec, process, code_execution |
-| `group:fs` | read, write, edit, apply_patch |
-| `group:web` | web_search, x_search, web_fetch |
-| `group:ui` | browser, canvas |
-| `group:automation` | cron, gateway |
-| `group:messaging` | message |
-| `group:nodes` | nodes |
-| `group:agents` | agents_list |
-| `group:media` | image, image_generate, music_generate, video_generate, tts |
-| `group:openclaw` | All built-in OpenClaw tools |
-
-### 5.4 Tool Access Control
-
-Tool access is controlled through allow/deny lists configured via `tools.allow` and `tools.deny`. The deny list always takes precedence over the allow list. If the resolved allowlist contains no callable tools, the system fails closed (the agent cannot call any tools). Provider-specific restrictions can be configured via `tools.byProvider` to limit which tools are available when using specific model providers [5].
-
-### 5.5 Web Search Providers
-
-OpenClaw supports a wide range of web search providers: Brave, DuckDuckGo, Exa, Firecrawl, Gemini, Grok, Kimi, MiniMax Search, Ollama Web Search, Perplexity, SearXNG, and Tavily. This diversity allows operators to choose the search provider that best fits their privacy requirements and use case [4].
-
----
-
-## 6. Models and Provider Management
-
-### 6.1 Provider Directory
-
-OpenClaw supports over 50 model providers, making it one of the most provider-agnostic AI gateways available. The complete list includes: Alibaba Model Studio, Amazon Bedrock, Amazon Bedrock Mantle, Anthropic (API + Claude CLI), Arcee AI, Azure Speech, BytePlus, Cerebras, Chutes, Cloudflare AI Gateway, ComfyUI, DeepSeek, ElevenLabs, fal, Fireworks, GitHub Copilot, GLM, Google (Gemini), Gradium, Groq, Hugging Face, inferrs, Kilocode, LiteLLM, LM Studio, MiniMax, Mistral, Moonshot AI, NVIDIA, Ollama, OpenAI (API + Codex), OpenCode, OpenCode Go, OpenRouter, Perplexity, Qianfan, Qwen Cloud, Runway, SenseAudio, SGLang, StepFun, Synthetic, Tencent Cloud, Together AI, Venice, Vercel AI Gateway, vLLM, Volcengine, Vydra, xAI, Xiaomi, and Z.AI [6].
-
-### 6.2 Provider Categories
-
-| Category | Providers |
-|----------|-----------|
-| **Major Cloud** | Anthropic, OpenAI, Google (Gemini), Amazon Bedrock, Azure |
-| **Open Source / Self-Hosted** | Ollama, vLLM, SGLang, LM Studio, LiteLLM |
-| **Specialized** | ElevenLabs (TTS), Runway (video), fal (media), ComfyUI (images) |
-| **Regional** | Alibaba, BytePlus, DeepSeek, GLM, MiniMax, Moonshot AI, Qianfan, Qwen Cloud, Tencent Cloud, Volcengine, Xiaomi, Z.AI |
-| **Aggregators** | OpenRouter, Cloudflare AI Gateway, Vercel AI Gateway, Fireworks, Together AI, Groq, Cerebras |
-
-### 6.3 Transcription and Media Generation
-
-For speech-to-text capabilities, OpenClaw supports: Deepgram, ElevenLabs, Mistral, OpenAI, SenseAudio, and xAI. Media generation tools work across providers with automatic failover [6]:
-
-| Capability | Tool | Description |
-|-----------|------|-------------|
-| Image Generation | `image_generate` | Provider selection with failover |
-| Music Generation | `music_generate` | Generate music tracks |
-| Video Generation | `video_generate` | Generate videos |
-
-Provider authentication is handled through the `openclaw onboard` CLI command, which guides the operator through credential setup. The default model is configured via `agents.defaults.model.primary` in the configuration file. For example: `agents.defaults.model.primary: "anthropic/claude-opus-4-6"` [6].
-
----
-
-## 7. Operational Readiness and Diagnostics
-
-### 7.1 VoiceClaw Real-Time Brain
-
-OpenClaw includes VoiceClaw, a real-time voice interaction system accessible via a WebSocket endpoint at `/voiceclaw/realtime`. VoiceClaw uses Gemini Live for real-time audio processing, enabling voice-based interactions with the AI agent. Tool calls in VoiceClaw return an immediate working result to maintain conversational flow, followed by asynchronous execution of the actual tool operation [2].
-
-### 7.2 Health and Diagnostics
-
-The `openclaw doctor` command provides a comprehensive diagnostic check of the entire system, identifying common issues with configuration, connectivity, and dependencies. The `openclaw gateway status --deep` command performs an in-depth health check that validates all channel connections, provider availability, and system resources [2].
-
-### 7.3 Session Management
-
-Sessions in OpenClaw follow specific routing rules. Direct chat sessions collapse into a shared main session per user, while group chat sessions are isolated per group. The system supports session pruning to manage memory usage, and session tools allow programmatic access to session history and state. Multi-agent routing enables isolated sessions per agent, workspace, or sender [3].
-
-### 7.4 Memory and Compaction
-
-OpenClaw implements a compaction system for managing conversation memory. As sessions grow, the compaction engine summarizes older messages to reduce context window usage while preserving essential information. The `before_compaction` and `after_compaction` hooks allow plugins to observe and annotate the compaction process [3].
-
-### 7.5 Security Considerations
-
-The Gateway exposes a comprehensive security surface that operators must understand. Authentication is required by default, with support for shared-secret tokens, passwords, and trusted-proxy configurations. The pairing system ensures that only approved devices can connect. Network binding defaults to loopback (127.0.0.1) to prevent external access unless explicitly configured. For remote access, OpenClaw integrates with Tailscale for zero-config VPN connectivity [2].
-
-### 7.6 Apps and Interfaces
-
-OpenClaw provides multiple client interfaces for different platforms and use cases:
-
-| Interface | Platform | Key Features |
-|-----------|----------|--------------|
-| WebChat | Browser | Gateway WebChat UI, embeddable |
-| Control UI | Browser | Configuration, monitoring, management dashboard |
-| macOS App | macOS | Menu bar companion app |
-| iOS Node | iOS | Pairing, Canvas, camera, screen recording, location, voice |
-| Android Node | Android | Pairing, chat, voice, Canvas, camera, device commands |
-
-### 7.7 Cron Jobs and Automation
-
-OpenClaw supports cron-based scheduling through the `cron` tool, enabling agents to perform automated tasks on a schedule. The heartbeat system provides regular health checks and can trigger automated responses when issues are detected. The Lobster workflow pipeline system enables complex multi-step automation chains [4].
-
----
-
-## References
-
-[1]: [OpenClaw Documentation - Main Page](https://docs.openclaw.ai/)
-[2]: [OpenClaw Gateway Architecture](https://docs.openclaw.ai/concepts/architecture)
-[3]: [OpenClaw Agent Loop](https://docs.openclaw.ai/concepts/agent-loop)
-[4]: [OpenClaw Features](https://docs.openclaw.ai/concepts/features)
-[5]: [OpenClaw Tools and Plugins](https://docs.openclaw.ai/tools)
-[6]: [OpenClaw Providers](https://docs.openclaw.ai/providers)
+### 3.3 Best Practices for Configuration Management
+- **Environment Variables:** Never hardcode sensitive information like API keys or database passwords in the `openclaw.json` file. Always use the `env:` prefix to reference environment variables.
+- **Version Control:** Treat the `openclaw.json` file as code. Store it in a version control system (like Git) to track changes, facilitate rollbacks, and enable collaborative editing.
+- **Validation:** Always validate the configuration file against the OpenClaw schema before deploying it to production. A simple syntax error can bring down the entire system.
+- **Dynamic Reloading:** OpenClaw supports dynamic reloading of certain configuration parameters (e.g., logging levels, routing rules) without requiring a full restart. Utilize this feature to minimize downtime during operational adjustments.
+
+## 4. Workspace Files Deep Dive
+
+The OpenClaw workspace is a directory on the filesystem that serves as the agent's physical embodiment. It contains a set of standardized markdown files that define the agent's identity, instructions, and operational parameters. This file-based approach allows operators to easily inspect, modify, and version-control the agent's core logic using standard text editors and Git.
+
+### 4.1 SOUL.md: The Core Identity
+The `SOUL.md` file is the most critical document in the workspace. It defines the fundamental persona, values, and overarching goals of the agent. It answers the question: "Who are you?"
+- **Content:** It should contain a detailed description of the agent's character, tone of voice, ethical boundaries, and primary directives.
+- **Usage:** The contents of `SOUL.md` are heavily weighted in the system prompt sent to the LLM. It ensures that the agent remains in character and adheres to its core principles across all interactions.
+- **Example:** "You are a highly technical, no-nonsense support engineer. You prioritize accuracy and efficiency over politeness. You never guess; if you don't know the answer, you escalate the issue."
+
+### 4.2 BOOT.md: Initialization Instructions
+The `BOOT.md` file contains the instructions that the agent must execute immediately upon startup or when a new session begins.
+- **Content:** It typically includes steps for verifying connections, loading initial data, or sending a welcome message to the user.
+- **Usage:** OpenClaw parses this file and executes the instructions sequentially before processing any user input.
+- **Example:** "1. Verify connection to the customer database. 2. Load the user's profile based on their phone number. 3. Send the standard greeting message."
+
+### 4.3 IDENTITY.md: Contextual Persona
+While `SOUL.md` defines the core identity, `IDENTITY.md` provides contextual nuances. It allows the agent to adapt its persona based on the specific channel or user segment it is interacting with.
+- **Content:** Rules for adjusting tone, vocabulary, or formatting based on context.
+- **Usage:** Dynamically injected into the prompt based on the routing rules defined in `openclaw.json`.
+- **Example:** "When interacting on WhatsApp, use shorter sentences and emojis. When interacting on email, use formal business language."
+
+### 4.4 USER.md: User Profiles and Preferences
+The `USER.md` file (or a directory of such files) stores information about the users the agent interacts with.
+- **Content:** User preferences, historical context, account details, and any other relevant metadata.
+- **Usage:** Retrieved and injected into the prompt to personalize the interaction.
+- **Example:** "User ID: 12345. Name: Alice. Preference: Prefers concise answers. Subscription Tier: Premium."
+
+### 4.5 AGENTS.md: Multi-Agent Directory
+In a multi-agent setup, `AGENTS.md` serves as a directory of other agents that the current agent can communicate with or delegate tasks to.
+- **Content:** The names, capabilities, and contact protocols for other agents in the network.
+- **Usage:** Used by the orchestration engine to route internal messages and coordinate complex workflows.
+
+### 4.6 HEARTBEAT.md: Health and Status
+The `HEARTBEAT.md` file is dynamically updated by the OpenClaw runtime to reflect the current health and status of the agent.
+- **Content:** Uptime, current load, error rates, and the status of external connections.
+- **Usage:** Monitored by external systems (like Prometheus or Datadog) to trigger alerts or automated recovery procedures.
+
+### 4.7 MEMORY.md: Episodic Storage
+While the vector database handles semantic search, `MEMORY.md` serves as a human-readable log of significant events or "memories" that the agent has explicitly chosen to record.
+- **Content:** Summaries of past conversations, important decisions made, or facts learned.
+- **Usage:** Provides a persistent, easily auditable record of the agent's experiences.
+
+### 4.8 TOOLS.md: Available Capabilities
+The `TOOLS.md` file lists the extensions and skills available to the agent, along with instructions on how to use them.
+- **Content:** Descriptions of API endpoints, required parameters, and expected outputs for each available tool.
+- **Usage:** Injected into the prompt to inform the LLM of its capabilities and how to invoke them.
+
+## 5. Messaging Channels Integration
+
+OpenClaw's ability to seamlessly integrate with 14 different messaging channels is a key differentiator. However, managing these connections in a production environment requires a deep understanding of the underlying protocols and potential failure modes.
+
+### 5.1 WhatsApp (Baileys)
+OpenClaw utilizes the Baileys library to connect to WhatsApp via the Web API protocol. This allows the agent to operate as a standard WhatsApp user, without requiring an official WhatsApp Business API account.
+- **Architecture:** Baileys establishes a WebSocket connection to the WhatsApp servers, handling the complex encryption and state management required by the protocol.
+- **Challenges:** The WhatsApp Web protocol is notoriously unstable. Connections can drop frequently, and session state can become corrupted.
+- **Operations:** Operators must closely monitor the Baileys session files. If a session becomes corrupted, it must be deleted, and the agent must be re-authenticated via QR code. Implement robust auto-reconnect logic in `openclaw.json`.
+
+### 5.2 Signal (signal-cli)
+For secure, end-to-end encrypted communication, OpenClaw integrates with Signal using the `signal-cli` daemon.
+- **Architecture:** OpenClaw communicates with the `signal-cli` daemon via local RPC calls (typically over a UNIX socket or local TCP port). The daemon handles the actual communication with the Signal servers.
+- **Challenges:** `signal-cli` can be resource-intensive, and RPC calls can occasionally timeout or fail if the daemon is under heavy load.
+- **Operations:** Ensure that the `signal-cli` daemon is running as a managed service (e.g., via systemd) and is configured to restart automatically on failure. Monitor the RPC latency and adjust timeouts in `openclaw.json` accordingly.
+
+### 5.3 Telegram (Polling vs. Webhooks)
+OpenClaw supports both polling and webhooks for Telegram integration.
+- **Architecture (Polling):** The agent periodically sends `getUpdates` requests to the Telegram API to fetch new messages. This is simpler to set up but less efficient.
+- **Architecture (Webhooks):** Telegram pushes new messages to a publicly accessible URL hosted by the OpenClaw Gateway. This is more efficient and responsive but requires a public IP and SSL certificate.
+- **Challenges:** Polling can lead to rate limiting if the interval is too short. Webhooks can fail if the Gateway is unreachable or if the SSL certificate expires.
+- **Operations:** For production deployments, always use webhooks. Ensure that the Gateway is deployed behind a robust load balancer and that SSL certificates are automatically renewed.
+
+## 6. 3-Layer Memory System
+
+To achieve true autonomy and contextual awareness, an AI agent must possess a sophisticated memory system. OpenClaw implements a 3-Layer Memory System that balances speed, capacity, and persistence.
+
+### 6.1 Layer 1: The Context Window (Short-Term Memory)
+The Context Window is the immediate, short-term memory of the agent. It consists of the most recent messages in the current conversation, along with the core instructions from `SOUL.md` and `BOOT.md`.
+- **Characteristics:** Extremely fast, highly relevant, but strictly limited by the maximum token count of the underlying LLM (e.g., 128k tokens for GPT-4-turbo).
+- **Management:** OpenClaw employs dynamic context pruning. As the conversation grows, older messages are summarized or evicted from the Context Window to make room for new input, ensuring that the token limit is never exceeded.
+
+### 6.2 Layer 2: Workspace Files (Mid-Term Memory)
+The Workspace Files (`USER.md`, `MEMORY.md`, etc.) serve as the mid-term memory. They store structured information that is relevant to the current user or task but doesn't need to be in the immediate Context Window at all times.
+- **Characteristics:** Persistent, easily editable by humans, and moderately fast to retrieve.
+- **Management:** The agent can explicitly read from and write to these files using built-in tools. Operators can also manually edit these files to correct errors or inject new knowledge.
+
+### 6.3 Layer 3: Vector Database (Long-Term Memory)
+For vast amounts of unstructured data—such as historical conversation logs, knowledge base articles, or past experiences—OpenClaw utilizes a Vector Database. By default, it uses SQLite combined with Gemini embeddings for a lightweight, embedded solution, but it can be configured to use external databases like Pinecone or Milvus.
+- **Characteristics:** Massive capacity, semantic search capabilities, but slower retrieval times compared to the other layers.
+- **Management:** When the agent needs to recall information that is not in the Context Window or Workspace Files, it performs a semantic search against the Vector Database. The most relevant results are then injected into the Context Window.
+
+## 7. Session Management and JSONL Storage
+
+Every interaction in OpenClaw is part of a session. A session represents a continuous thread of conversation or a specific task execution. Managing these sessions efficiently is critical for performance and auditing.
+
+### 7.1 JSONL Storage Format
+OpenClaw stores session data using the JSONL (JSON Lines) format. Each line in a JSONL file is a valid JSON object representing a single event in the session (e.g., a user message, an LLM response, a tool invocation).
+- **Advantages:** JSONL is highly efficient for appending new data, which is the most common operation in session logging. It is also easy to parse and stream, making it ideal for processing large logs.
+- **Structure:** A typical JSONL entry includes a timestamp, the event type, the source (user or agent), and the payload (the message content or tool data).
+
+### 7.2 Session Lifecycle
+- **Creation:** A new session is created when a user initiates contact or when a background task is spawned. A unique Session ID is generated.
+- **Active State:** During the active state, all events are appended to the corresponding JSONL file. The Context Window is maintained in memory for fast access.
+- **Archival:** When a session is deemed inactive (e.g., no messages for 24 hours), it is archived. The in-memory Context Window is cleared, and the JSONL file is moved to long-term storage.
+- **Resumption:** If a user returns to an archived session, OpenClaw reloads the JSONL file, reconstructs the Context Window (using summarization if necessary), and resumes the interaction.
+
+## 8. Extensions and Skills Ecosystem
+
+The true power of OpenClaw lies in its extensibility. The core runtime provides the intelligence and connectivity, but Extensions and Skills provide the actual capabilities to interact with the world.
+
+### 8.1 Extensions (Custom TypeScript Plugins)
+Extensions are custom plugins written in TypeScript that run directly within the OpenClaw Node.js environment. They have full access to the internal APIs and can modify the core behavior of the runtime.
+- **Use Cases:** Implementing custom authentication protocols, integrating with proprietary internal databases, or adding support for new messaging channels.
+- **Development:** Extensions must implement specific interfaces defined by the OpenClaw SDK. They are loaded dynamically at startup based on the `openclaw.json` configuration.
+- **Security:** Because Extensions run in the same process as the core runtime, they pose a significant security risk. Only install Extensions from trusted sources and thoroughly review their code before deploying them to production.
+
+### 8.2 Skills (ClawdHub Marketplace)
+Skills are higher-level capabilities that are typically invoked by the LLM via function calling. They are often sourced from the ClawdHub marketplace, a centralized repository of community-contributed tools.
+- **Use Cases:** Searching the web, sending emails, generating images, or querying public APIs (e.g., weather, stock prices).
+- **Integration:** Skills are defined in the `TOOLS.md` file and registered with the LLM provider. When the LLM decides to use a skill, it outputs a structured JSON payload, which OpenClaw intercepts and executes.
+- **Management:** Operators can browse the ClawdHub marketplace, download skills, and configure them via `openclaw.json`.
+
+## 9. Multi-Agent Orchestration
+
+For complex tasks that require specialized knowledge or parallel execution, OpenClaw supports Multi-Agent Orchestration. This allows multiple distinct agent instances to collaborate, delegate tasks, and share information.
+
+### 9.1 The Orchestrator Pattern
+In a typical multi-agent setup, one agent acts as the Orchestrator. The Orchestrator interacts with the user, understands the overall goal, and breaks it down into sub-tasks.
+- **Delegation:** The Orchestrator delegates these sub-tasks to specialized background workers (e.g., a "Codex" agent for writing code, a "Claude Code" agent for reviewing it, or a "Pi" agent for generating creative content).
+- **Coordination:** The Orchestrator monitors the progress of the workers, handles errors, and synthesizes their outputs into a final response for the user.
+
+### 9.2 Background Workers (Codex, Claude Code, Pi)
+Background workers are specialized OpenClaw instances configured for specific tasks. They do not interact directly with users; instead, they receive instructions from the Orchestrator via internal messaging queues.
+- **Codex:** Optimized for code generation and technical problem-solving. Typically configured with a model like GPT-4-turbo and access to a secure execution sandbox.
+- **Claude Code:** Specialized in code review, refactoring, and architectural analysis. Often utilizes Anthropic's Claude models for their large context windows and nuanced reasoning.
+- **Pi:** Focused on creative writing, brainstorming, and empathetic communication.
+
+### 9.3 Communication Protocols
+Agents communicate with each other using a standardized internal protocol, often built on top of Redis Pub/Sub or RabbitMQ. This ensures reliable message delivery and allows for complex routing topologies.
+
+## 10. Known Errors, Troubleshooting, and Tech Support Operations
+
+Operating OpenClaw in production requires a proactive approach to monitoring and a deep understanding of common failure modes. This section outlines the most frequent issues and the standard operating procedures for resolving them.
+
+### 10.1 WhatsApp 408 Timeouts
+- **Symptom:** The agent fails to send or receive messages on WhatsApp. The logs show repeated `408 Request Timeout` errors from the Baileys library.
+- **Root Cause:** The WebSocket connection to the WhatsApp servers has become unresponsive, often due to network instability or rate limiting by Meta.
+- **Resolution:**
+  1. Force a reconnection by restarting the specific channel worker.
+  2. If the issue persists, delete the Baileys session file (`/var/lib/openclaw/sessions/wa_support`) and re-authenticate via QR code.
+  3. Review the `auto_reconnect` settings in `openclaw.json` to ensure they are aggressive enough.
+
+### 10.2 Signal RPC Failures
+- **Symptom:** Signal messages are delayed or dropped. Logs indicate `RPC connection refused` or `Timeout waiting for signal-cli`.
+- **Root Cause:** The `signal-cli` daemon has crashed, is deadlocked, or is overwhelmed by the volume of incoming messages.
+- **Resolution:**
+  1. Check the status of the `signal-cli` systemd service (`systemctl status signal-cli`).
+  2. Restart the daemon (`systemctl restart signal-cli`).
+  3. If the daemon is frequently crashing, investigate the system resources (CPU/RAM) and consider upgrading the instance or optimizing the Java heap size for `signal-cli`.
+
+### 10.3 Cross-Context Messaging Denied
+- **Symptom:** An agent attempts to send a message to another agent or a different channel, but the operation fails with a `Cross-Context Messaging Denied` error.
+- **Root Cause:** The routing rules in `openclaw.json` or the permissions defined in `AGENTS.md` do not allow this specific communication path. This is a security feature designed to prevent unauthorized data leakage.
+- **Resolution:**
+  1. Review the `orchestration` section of `openclaw.json` to ensure the routing path is explicitly allowed.
+  2. Check the `AGENTS.md` file to verify that the target agent is listed and that the contact protocols are correct.
+  3. Update the configuration and dynamically reload the routing rules.
+
+### 10.4 Telegram getUpdates Timeout
+- **Symptom:** The agent stops responding to Telegram messages when using the polling method. Logs show `getUpdates request timed out`.
+- **Root Cause:** The Telegram API is experiencing high latency, or the OpenClaw instance is experiencing network egress issues.
+- **Resolution:**
+  1. Increase the `timeout_ms` setting for the Telegram channel in `openclaw.json`.
+  2. Verify the network connectivity of the OpenClaw instance.
+  3. **Permanent Fix:** Migrate from polling to webhooks for a more robust and responsive integration.
+
+### 10.5 Tech Support Operations Workflow
+When a critical alert is triggered, tech support engineers should follow this standard workflow:
+1. **Triage:** Identify the affected component (Gateway, Execution Engine, Channel, etc.) using the centralized logging dashboard (e.g., Kibana or Grafana).
+2. **Isolate:** If a specific channel or worker is causing instability, isolate it by disabling it in `openclaw.json` and reloading the configuration.
+3. **Diagnose:** Analyze the JSONL session logs and the system logs to determine the root cause.
+4. **Remediate:** Apply the appropriate fix (e.g., restarting a daemon, clearing a corrupted session file, adjusting a timeout).
+5. **Post-Mortem:** Document the incident, the root cause, and the resolution in the internal knowledge base to improve future response times.
+
+## 11. Relationship to Other Specialist Files
+
+This document, `01-openclaw-specialist.md`, serves as the foundational guide for the OpenClaw architecture. It provides the overarching context required to understand the other six specialist files in this repository. The relationship is as follows:
+
+- **`02-gateway-routing.md`**: Expands on Section 2.1, providing deep technical details on configuring the Gateway, writing custom routing rules, and managing SSL/TLS termination.
+- **`03-memory-optimization.md`**: Dives deeper into Section 6, offering advanced strategies for tuning the Vector Database, optimizing embedding models, and managing the Context Window for maximum efficiency.
+- **`04-channel-integrations.md`**: Builds upon Section 5, providing step-by-step guides for setting up and troubleshooting every supported messaging channel, including obscure edge cases.
+- **`05-extension-development.md`**: Expands on Section 8.1, serving as a comprehensive tutorial for writing, testing, and deploying custom TypeScript Extensions.
+- **`06-multi-agent-workflows.md`**: Details the concepts introduced in Section 9, providing concrete examples of complex orchestration patterns and inter-agent communication protocols.
+- **`07-production-deployment.md`**: Takes the operational concepts from Section 10 and provides a complete guide to deploying OpenClaw at scale using Kubernetes, Docker Swarm, and CI/CD pipelines.
+
+By mastering the concepts in this foundational document, operators will be well-equipped to delve into the specialized topics covered in the subsequent files, ensuring a robust, scalable, and highly available OpenClaw deployment.
