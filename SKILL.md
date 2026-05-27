@@ -1,6 +1,6 @@
 # Specialist Teams Knowledge Base
 
-This repository contains the ultimate reference guides for 47 different specialist domains. Each specialist now includes a comprehensive multi-file structure with 7 documents covering every aspect of the domain. When an AI agent needs deep expertise, architecture patterns, code examples, troubleshooting guidance, security audits, or configuration references in a specific domain, they should refer to the appropriate files in this repository.
+This repository contains the ultimate reference guides for 48 different specialist domains. Each specialist now includes a comprehensive multi-file structure with 7 documents covering every aspect of the domain. When an AI agent needs deep expertise, architecture patterns, code examples, troubleshooting guidance, security audits, or configuration references in a specific domain, they should refer to the appropriate files in this repository.
 
 ## Usage Instructions for AI Agents
 
@@ -76,6 +76,7 @@ Each specialist follows this naming pattern:
 | 45 | Tech Support Operations | `45-tech-support-ops-specialist.md` | `45-tech-support-ops-advanced.md` | `45-tech-support-ops-cli-reference.md` | `45-tech-support-ops-troubleshooting.md` | `45-tech-support-ops-security-audit.md` | `45-tech-support-ops-config-schemas.md` | `45-tech-support-ops-deep-dive.md` |
 | 46 | Wiki.js | `46-wikijs-specialist.md` | `46-wikijs-advanced.md` | `46-wikijs-cli-reference.md` | `46-wikijs-troubleshooting.md` | `46-wikijs-security-audit.md` | `46-wikijs-config-schemas.md` | `46-wikijs-deep-dive.md` |
 | 47 | Hermes Agent (NousResearch) | `47-hermes-agent-specialist.md` | `47-hermes-agent-advanced.md` | `47-hermes-agent-cli-reference.md` | `47-hermes-agent-troubleshooting.md` | `47-hermes-agent-security-audit.md` | `47-hermes-agent-config-schemas.md` | `47-hermes-agent-deep-dive.md` |
+| 48 | OpenTelemetry Collector | `48-otel-collector-specialist.md` | `48-otel-collector-advanced.md` | `48-otel-collector-cli-reference.md` | `48-otel-collector-troubleshooting.md` | `48-otel-collector-security-audit.md` | `48-otel-collector-config-schemas.md` | `48-otel-collector-deep-dive.md` |
 
 ## File Structure
 

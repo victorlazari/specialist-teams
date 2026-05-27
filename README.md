@@ -1,8 +1,8 @@
 # Specialist Teams
 
-A comprehensive knowledge base of 47 specialist domains for AI agents and engineering teams. Each specialist includes **7 detailed documentation files** covering core concepts, advanced patterns, CLI references, troubleshooting, security audits, configuration schemas, and deep-dive architecture guides.
+A comprehensive knowledge base of 48 specialist domains for AI agents and engineering teams. Each specialist includes **7 detailed documentation files** covering core concepts, advanced patterns, CLI references, troubleshooting, security audits, configuration schemas, and deep-dive architecture guides.
 
-**Total: 329 files | 780,000+ words | 47 specialist domains**
+**Total: 336 files | 797,000+ words | 48 specialist domains**
 
 ## Repository Structure
 
@@ -69,6 +69,7 @@ Each specialist follows a consistent 7-file structure:
 | 45 | **Tech Support Operations** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
 | 46 | **Wiki.js** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
 | 47 | **Hermes Agent (NousResearch)** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
+| 48 | **OpenTelemetry Collector** | specialist, advanced, cli-reference, troubleshooting, security-audit, config-schemas, deep-dive |
 
 ## AI Agent Usage
 
