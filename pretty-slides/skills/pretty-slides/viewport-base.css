@@ -1,0 +1,342 @@
+/* ===========================================
+   VIEWPORT & LAYOUT: MANDATORY BASE STYLES
+   Include this ENTIRE file in every landing page.
+   These styles ensure proper section layout, responsive
+   scaling, and consistent spacing.
+   =========================================== */
+
+/* 1. Base reset and smooth scrolling */
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: var(--body-size);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* 2. Sections — variable height, generous padding */
+.section {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    padding: var(--section-padding);
+}
+
+/* Hero section: full viewport height */
+.hero-section {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+/* 3. Content containers — constrained width */
+.section-content {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* 4. ALL typography uses clamp() for responsive scaling */
+:root {
+    /* Hero */
+    --hero-title-size: clamp(2.5rem, 8vw, 6rem);
+    --hero-subtitle-size: clamp(1rem, 2.5vw, 1.5rem);
+
+    /* Section headings */
+    --section-title-size: clamp(1.75rem, 5vw, 3.5rem);
+    --h3-size: clamp(1.25rem, 3vw, 2rem);
+
+    /* Body */
+    --body-size: clamp(0.875rem, 1.5vw, 1.125rem);
+    --small-size: clamp(0.75rem, 1vw, 0.875rem);
+    --label-size: clamp(0.65rem, 0.9vw, 0.8rem);
+
+    /* Spacing */
+    --section-padding: clamp(3rem, 8vh, 8rem) clamp(1.5rem, 5vw, 6rem);
+    --content-max-width: min(90vw, 1200px);
+    --content-gap: clamp(1.5rem, 3vw, 3rem);
+    --card-gap: clamp(1rem, 2vw, 2rem);
+    --element-gap: clamp(0.5rem, 1vw, 1rem);
+}
+
+h1 { font-family: var(--font-display); font-size: var(--hero-title-size); line-height: 1.1; letter-spacing: -0.02em; }
+h2 { font-family: var(--font-display); font-size: var(--section-title-size); line-height: 1.15; letter-spacing: -0.01em; }
+h3 { font-family: var(--font-display); font-size: var(--h3-size); line-height: 1.2; }
+
+/* 5. Feature grids */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: var(--card-gap);
+    margin-top: var(--content-gap);
+}
+
+.feature-card {
+    padding: clamp(1.5rem, 3vw, 2.5rem);
+    border-radius: clamp(8px, 1vw, 16px);
+    background: var(--bg-card, rgba(255, 255, 255, 0.05));
+}
+
+/* 6. Stats grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    gap: var(--card-gap);
+    text-align: center;
+    margin-top: var(--content-gap);
+}
+
+.stat-number {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 4rem);
+    font-weight: 700;
+    color: var(--accent);
+}
+
+/* 7. CTA Buttons */
+.cta-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(0.75rem, 1.5vw, 1rem) clamp(1.5rem, 3vw, 2.5rem);
+    font-family: var(--font-body);
+    font-size: var(--body-size);
+    font-weight: 600;
+    border-radius: clamp(6px, 0.8vw, 12px);
+    background: var(--cta-bg, var(--accent));
+    color: var(--cta-text, #ffffff);
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* 8. Images — responsive and lazy-load friendly */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.section-image {
+    max-height: min(60vh, 500px);
+    object-fit: contain;
+    border-radius: clamp(8px, 1vw, 16px);
+}
+
+/* 9. Scrollytelling layout */
+.scroll-track {
+    position: relative;
+}
+
+.sticky-media {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.scroll-panels {
+    position: relative;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.scroll-panel {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    padding: clamp(2rem, 5vw, 4rem);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    pointer-events: auto;
+}
+
+.scroll-panel.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* 10. Sticky Navigation */
+.site-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: clamp(0.75rem, 2vw, 1.25rem) clamp(1.5rem, 4vw, 4rem);
+    background: transparent;
+    transition: background 0.3s ease, backdrop-filter 0.3s ease, box-shadow 0.3s ease;
+}
+
+.site-nav.scrolled {
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.nav-brand {
+    font-family: var(--font-display);
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.nav-links {
+    display: flex;
+    gap: clamp(1rem, 2vw, 2rem);
+}
+
+.nav-links a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: var(--small-size);
+    transition: color 0.2s ease;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    color: var(--text-primary);
+}
+
+.nav-cta {
+    font-size: var(--small-size) !important;
+    padding: clamp(0.4rem, 1vw, 0.6rem) clamp(1rem, 2vw, 1.5rem) !important;
+}
+
+/* 11. Scroll Progress Bar */
+.scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: var(--accent);
+    z-index: 1001;
+    width: 0%;
+    will-change: width;
+}
+
+/* 12. Performance: content-visibility for off-screen sections */
+.section:not(.hero-section) {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 800px;
+}
+
+/* ===========================================
+   RESPONSIVE BREAKPOINTS
+   =========================================== */
+
+/* Tablet and below (width) */
+@media (max-width: 768px) {
+    :root {
+        --section-padding: clamp(2rem, 6vh, 4rem) clamp(1rem, 4vw, 2rem);
+        --content-gap: clamp(1rem, 2vw, 2rem);
+    }
+
+    .feature-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .nav-links {
+        display: none;
+    }
+
+    .scroll-panel {
+        min-height: 60vh;
+    }
+
+    .panel-content {
+        max-width: 100%;
+    }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+    :root {
+        --hero-title-size: clamp(2rem, 10vw, 3rem);
+        --section-title-size: clamp(1.5rem, 7vw, 2.5rem);
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Short viewports */
+@media (max-height: 600px) {
+    .hero-section {
+        min-height: auto;
+        padding-top: clamp(3rem, 10vh, 6rem);
+        padding-bottom: clamp(3rem, 10vh, 6rem);
+    }
+
+    .sticky-media {
+        height: auto;
+        min-height: 60vh;
+    }
+}
+
+/* ===========================================
+   REDUCED MOTION
+   Respect user preferences
+   =========================================== */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
+
+    html {
+        scroll-behavior: auto;
+    }
+
+    .scroll-panel {
+        opacity: 1;
+        transform: none;
+    }
+
+    .reveal,
+    .reveal-scale,
+    .reveal-left,
+    .reveal-right,
+    .reveal-blur,
+    .reveal-clip {
+        opacity: 1;
+        transform: none;
+        filter: none;
+        clip-path: none;
+    }
+}

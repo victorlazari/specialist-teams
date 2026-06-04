@@ -1,0 +1,11 @@
+{
+  "name": "pretty-slides",
+  "version": "1.0.0",
+  "description": "Cinematic scrollytelling landing page generator with premium visual themes, scroll-driven animations, and DJI-grade production quality. Zero dependencies.",
+  "author": {
+    "name": "lazari",
+    "url": "https://github.com/lazari"
+  },
+  "license": "MIT",
+  "keywords": ["landing-page", "scrollytelling", "cinematic", "product-page", "animations", "html", "design"]
+}
